@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop.xsd">
+    <!--
+        spring两大特点：IOC和AOP：
+                              IOC:inversion of controll 控制反转
+                                就是将手动通过new关键字创建对象的权利交给spring,由工厂创建对象过程,
+                              DI: Dependency Injection 依赖注入
+                                Spring工厂不仅要创建对象还要在创建对象同时维护组件和组件的依赖关系
+        spring工厂原理：反射+构造方法
+        Class.forName("xxxx").newInstance();
+
+        spring的三种注入：set注入     : 使用property标签
+                        构造方法注入 : 使用constructor-arg标签
+                        自动注入    :
+    -->
+
+
+<!--    set注入 8种基本类型+string 数组、list、map、set、properties 引用类型  -->
+<!--     lazy-init="true|false" scope="singleton|prototype" -->
+    <bean id="userService" class="com.wang.spring.service.UserServiceImpl" init-method="initMy" destroy-method="destroyMy">
+        <property name="orderService" ref="orderService"/>
+        <property name="stringMy" value="字符串"/>
+        <property name="integerMy" value="12345"/>
+        <property name="doubleMy" value="123.456"/>
+        <property name="booleanMy" value="true"/>
+<!--        注意: 在spring技术栈中日期格式默认为yyyy/MM/dd HH:mm:ss-->
+        <property name="dateMy" value="2017/1/1 13:14:15"/>
+        <property name="arrayMy">
+            <array>
+                <value>数组1</value>
+                <value>数组2</value>
+                <value>数组3</value>
+            </array>
+        </property>
+        <property name="listMy">
+            <list>
+                <value>list1</value>
+                <value>list2</value>
+                <value>list3</value>
+            </list>
+        </property>
+        <property name="setMy">
+            <set>
+                <value>set1</value>
+                <value>set2</value>
+                <value>set1</value>
+            </set>
+        </property>
+        <property name="mapMy">
+            <map>
+                <entry key="key1" value="value1"/>
+                <entry key="key2" value="value2"/>
+<!--                <entry key-ref="" value-ref=""/>-->
+            </map>
+        </property>
+        <property name="propertiesMy">
+            <props>
+                <prop key="driver">com.mysql.jdbc.Driver</prop>
+                <prop key="url">jdbc:mysql://localhost:3306/test</prop>
+                <prop key="username">root</prop>
+                <prop key="password">root</prop>
+            </props>
+        </property>
+    </bean>
+
+<!--    构造注入  构造注入的ref value可以是set注入的所有类型-->
+    <bean id="orderService" class="com.wang.spring.service.OrderServiceImpl">
+        <constructor-arg index="0" ref="userService"/>
+        <constructor-arg index="1" value="哇哈哈"/>
+    </bean>
+
+<!--    自动注入: autowire: 用来给组件中成员变量完成自动赋值操作
+                byType: 根据类型完成自动注入 根据成员变量类型去工厂找 找到对应类型完成赋值  找不到不赋值
+                        注意:如果工厂中存在多个类型一致的组件 使用类型自动注入会报错
+                byName: 根据名称完成自动注入 根据成员变量名字去工厂中获取与之一致名字, 找到对应的赋值 找不到不赋值     -->
+
+<!--    <bean id="userService" class="com.wang.service.UserServiceImpl" autowire="byName"></bean>-->
+<!--    <bean id="userService" class="com.wang.service.UserServiceImpl" autowire="byType"></bean>-->
+
+
+<!--    复杂对象的注入：不能直接通过new的(抽象类类型 接口类型等)   需要实现org.springframework.beans.factory.FactoryBean接口-->
+    <bean id="calendarFactoryBean" class="com.wang.spring.complexObjects.CalendarFactoryBean"></bean>
+    <bean id="conn" class="com.wang.spring.complexObjects.ConnectionFactoryBean"></bean>
+
+
+<!--AOP相关-->
+<!--    目标类-->
+    <bean id="aOPService" class="com.wang.spring.service.AOPService"></bean>
+<!--    通知advice-->
+    <bean id="aOPAdviceService" class="com.wang.spring.service.AOPAdviceService"></bean>
+    <!--配置切面-->
+    <aop:config>
+        <!--配置切入点 expression 切入点表达式  方法级别的切入点表达式  控制粒度: 方法级别   效率低
+                     within    切入点表达式 -类级别的切入点表达式    控制粒度: 类级别    效率高  推荐-->
+        <aop:pointcut id="pc" expression="within(com.wang.spring.service.AOPService)"/>
+        <!--组装切面-->
+        <aop:advisor advice-ref="aOPAdviceService" pointcut-ref="pc"/>
+    </aop:config>
+
+</beans>

@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
+
+<!--    以前mybatis：
+                 //1.mybatis 主配置文件
+                 String config = "mybatis-config.xml";
+                 //2.读取配置文件
+                 InputStream in = Resources.getResourceAsStream(config);
+                 //3.创建 SqlSessionFactory 对象,目的是获取 SqlSession
+                 SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(in);
+                 //4.获取 SqlSession,SqlSession 能执行 sql 语句
+                 SqlSession sqlSession = factory.openSession();
+                 //5.执行 SqlSession 的 selectList()
+                     //方法一:
+                     //List<User> users = sqlSession.selectList("com.wang.mapper.UserMapper.selectUser");
+                     //方法二:
+                     UserMapper mapper = sqlSession.getMapper(UserMapper.class);
+                     List<User> users = mapper.selectUser();
+                 //6.循环输出查询结果
+                 studentList.forEach( users -> System.out.println(users));
+                 //7.关闭 SqlSession，释放资源
+                 sqlSession.close();
+           整合后就不需要了;
+-->
+<!--    spring mybatis整合，整体思路：通过spring框架接管Mybatis中核心对象SqlSessionFactory对象的创建
+                                   而SqlSessionFactory是一个接口类型的复杂对象，所以需要实现org.springframework.beans.factory.FactoryBean接口
+                public class SqlSessionFactoryBean implements FactoryBean<SqlSessionFactory>{
+                    @Override
+                    public SqlSessionFactory getObject(){
+                        is = Resources.getResourceAsStream("mybatis-config.xml");
+                        return new SqlSessionFactoryBuilder().build(is);
+                    }
+                    @Override
+                    public Class<?> getObjectType(){return SqlSessionFactory.class}
+                    @Override
+                    public boolean isSingleton(){return true}
+                 }
+                 //去spring工厂进行注入
+                 <bean id="sqlSessionFactory" class="com.wang.xxx.SqlSessionFactoryBean"></bean>
+                 //从spring工厂获取对象
+                 SqlSessionFactory sqlSessionFactory = (SqlSessionFactory) context.getBean("sqlSessionFactory");
+                 SqlSession sqlSession = sqlSessionFactory.openSession();
+                 UserDao userDao = sqlSession.getMapper(UserDao.class);
+        所以mybatis-spring封装了SqlSessionFactory对象的创建
+-->
+
+<!--    创建数据源 C3P0 dbcp Druid-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="username" value="root"/>
+        <property name="url"
+                  value="jdbc:mysql://localhost:3306/ele?useSSL=false&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=UTC"/>
+        <property name="password" value="123456"/>
+    </bean>
+
+<!--创建sqlSessionFactory-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!--注入datasource mapperLocations typeAliasesPackage-->
+        <property name="dataSource" ref="dataSource"/>
+        <property name="mapperLocations" value="classpath:mapper/*.xml"/>
+<!--        <property name="mapperLocations">-->
+<!--            <array>-->
+<!--                <value>classpath:mapper/*.xml</value>-->
+<!--            </array>-->
+<!--        </property>-->
+<!--        <property name="configLocation" value="classpath:mybatis-config.xml"/>-->
+        <property name="typeAliasesPackage" value="com.wang.springMybatis.entity"/>
+    </bean>
+
+<!--创建DAO  两种方式都可以 MapperFactoryBean需要为每一个dao创建bean 推荐使用MapperScannerConfigurer扫描dao包 -->
+<!--    这样得写很多个bean
+        <bean id="userDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+            <property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+            <property name="mapperInterface" value="com.wang.springMybatis.dao.UserDao"
+        </bean>
+        UserDao userDao = context.getBean("userDao");
+-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!--注入sqlSessionFactory dao接口所在包-->
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+        <property name="basePackage" value="com.wang.springMybatis.dao"/>
+    </bean>
+
+<!--    事务：spring中处理事务两种方式： 编程式事务(代码冗余，不够通用，不便维护)
+                                    声明式事务(利用AOP进行事务控制，并对事务属性在配置文件中完成细粒度配置，使专注于业务层开发)
+-->
+<!--    Mybatis中事务管理的方式：sqlSession.commit()  sqlSession.rollback()
+        mybatis对原始JDBC的封装 ===》 java.sql.Connection对象  connection.commit() connection.rollback()
+        为了控制事务，需要获取connection对象，这个对象可以从dataSource-DruidDataSource中获取， DruidDataSource.getConnection();
+        但是这样获取的connection跟操作dao的connection【不是同一个，事务是失败的】。
+        mybatis-spring提供了类：org.springframework.jdbc.datasource.DataSourceTransactionManager 数据源事务管理器
+        在全局创建一个事务管理器，用来统一调度  业务层当前线程使用的连接对象必须要与Dao层实现连接的对象保持一致，否则事务是不生效的 ThreadLocal
+-->
+<!--创建事务管理器-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+<!-- 有了上面的DataSourceTransactionManager，就可以手动控制失误了，但是太繁琐，每个*ServiceImpl每一个增删改都得写重复的代码
+    <bean id="userServiceImpl" class="com.wang.springMybatis.service.UserServiceImpl">
+        <property name="userDao" ref="userDao"/>
+        <property name="platformTransactionManager" ref="transactionManager"/>
+    </bean>
+    public class UserServiceImpl implements UserService {
+        private UserDao userDao;
+        public void setUserDao(UserDao userDao) {this.userDao = userDao;}
+        private PlatformTransactionManager platformTransactionManager;
+        public void setPlatformTransactionManager(PlatformTransactionManager platformTransactionManager) {
+            this.platformTransactionManager = platformTransactionManager;
+        }
+        @Override
+        public void saveOneUser(User user) {
+            //创建事务配置对象
+            TransactionDefinition transactionDefinition = new DefaultTransactionDefinition();
+            //获取事务状态
+            TransactionStatus status = platformTransactionManager.getTransaction(transactionDefinition);
+            try {
+                //处理业务
+                userDao.saveOne(user);
+                //提交
+                platformTransactionManager.commit(status);
+            }catch (Exception e){
+                e.printStackTrace();
+                //出现异常，回滚
+                platformTransactionManager.rollback(status);
+            }
+        }
+    }
+-->
+
+
+<!--    AOP自定义完成事务-->
+<!--    1.创建事务环绕通知
+        public class TransactionAdvice implements MethodInterception{
+            private PlatformTransactionManager platformTransactionManager;
+            public void setPlatformTransactionManager(PlatformTransactionManager platformTransactionManager) {
+                this.platformTransactionManager = platformTransactionManager;
+            }
+            @Override
+            public Object invoke(MethodInvocation methodInvocation) throws Throwable {
+                //创建事务配置对象
+                TransactionDefinition transactionDefinition = new DefaultTransactionDefinition();
+                //获取事务状态
+                TransactionStatus status = platformTransactionManager.getTransaction(transactionDefinition);
+                try {
+                    //处理业务
+                    Object result = methodInvocation.proceed();
+                    //提交
+                    platformTransactionManager.commit(status);
+                    return result;
+                }catch (Exception e){
+                    e.printStackTrace();
+                    //出现异常，回滚
+                    platformTransactionManager.rollback(status);
+                }
+                return null;
+            }
+        }
+        2.配置切面
+        <bean id="tx" class="xxx.TransactionAdvice">
+            <property name="platformTransactionManager" ref="transactionManager"/>
+        </bean>
+        <aop:config>
+            <aop:pointcut id="pc" expression="within(com.wang.service.*ServiceImpl)"/>
+            <aop:advisor advice-ref="tx" pointcut-ref="pc"/>
+        </aop:config>
+-->
+<!--
+声明式事务开发：(一般不用，而用注解式事务开发)
+&lt;!&ndash;    mybatis-spring的声明式事务开发  提供了<tx:advice></tx:advice>标签&ndash;&gt;
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        &lt;!&ndash;对方法进行细粒度事务控制&ndash;&gt;
+        <tx:attributes>
+            &lt;!&ndash;
+                propagation: 事务传播属性
+                   REQUIRED: 需要事务           如果外层没有事务 则开启新的事务   如果外层存在事务,则融入当前事务
+                   SUPPORTS: 支持事务           如果外层没有事务 不会开启新的事务 如果外层存在事务,则融入当前事务
+               REQUIRES_NEW: 每次开启新的事务     如果外层存在事务,外层事务挂起,自己开启新的事务执行,执行完成,恢复外层事务继续执行
+              NOT_SUPPORTED: 不支持事务         如果外层存在事务,外层事务挂起,自己以非事务方式执行,执行完成,恢复外部事务执行
+                      NEVER: 不能有事务         存在事务报错
+                  MANDATORY: 强制事务           没有事务报错
+                  NESTED   : 嵌套事务           事务之间可以嵌套运行 数据库 oracle mysql 不支持
+               isolation   : 事务隔离级别
+                    DEFAULT:            使用数据库默认的隔离级别  [推荐]
+                    READ_UNCOMMITTED:   读未提交  一个客户端读到了另一个客户端没有提交的数据  脏读现象
+                    READ_COMMITTED  :   读提交    一个客户端只能读到另一个客户端提交的数据   避免脏读现象 oracle
+                    REPEATABLE_READ :   可重复读  主要是用来避免不可重复读现象出现   行锁  mysql
+                    SERIALIZABLE    :   序列化读  主要是用来避免幻影读现象出现      表锁
+                    注意: 隔离级别越高,查询效率越低 一般推荐使用数据库默认隔离级别
+               read-only :事务读写性  true 只读 不能执行增删改操作 false:可读可写(mysql支持 oralce不支持)
+               rollback-for: 出现什么类型异常回滚  默认出现RuntimeException 及其子类异常回滚
+               no-rollback-for: 出现什么类型异常不会滚  java.lang.RuntimeException
+               timeout:  事务超时性  -1  永不超时
+                         设置>=0正整数  代表设置超时时间 单位 1秒
+            &ndash;&gt;
+            <tx:method name="save*"/>
+            <tx:method name="update*"/>
+            <tx:method name="delete*"/>
+            <tx:method name="select*" propagation="SUPPORTS"/>
+        </tx:attributes>
+    </tx:advice>
+    &lt;!&ndash;配置事务切面&ndash;&gt;
+    <aop:config>
+        <aop:pointcut id="pc" expression="execution(* com.wang.springMybatis.service.*Impl.*(..))"/>
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="pc"/>
+    </aop:config>
+-->
+<!--    注解式事务开发-->
+    <tx:annotation-driven/>
+<!--    开启aop注解支持-->
+    <aop:aspectj-autoproxy/>
+
+<!--注入对象：(除了特殊bean，一般都用注解)-->
+<!--    注入service层-->
+    <bean id="userServiceImpl" class="com.wang.springMybatis.service.UserServiceImpl">
+        <property name="userDao" ref="userDao"/>
+    </bean>
+    <!--  使用注解  但是注解要配合@Autowired等注解一起使用，完成注入 -->
+    <!--  组件扫描，一定要排除controller，让springMVC扫描controller-->
+<!--    <context:component-scan base-package="com.wang.springMybatis">-->
+<!--        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"></context:exclude-filter>-->
+<!--    </context:component-scan>-->
+
+</beans>

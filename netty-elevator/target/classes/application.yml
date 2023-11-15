@@ -1,0 +1,5 @@
+server:
+  port: 8082
+  shutdown: graceful
+tcp:
+  port: 9988

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+    <!--It can be useful to have bean definitions span multiple XML files.Often, each individual XML configuration file
+    represents a logical layer or module in your architecture.
+    让 bean 定义跨越多个 XML 文件会很有用。通常，每个单独的 XML 配置文件代表体系结构中的一个逻辑层或模块。-->
+
+    <import resource="services.xml"/>
+    <import resource="daos.xml"/>
+
+</beans>

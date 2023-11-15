@@ -1,0 +1,691 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:c="http://www.springframework.org/schema/c"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       https://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/aop
+       https://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!-- 这些 Bean 被定义为 BeanDefinition 对象 包含以下元数据：
+        1.全限定类名 A package-qualified class name
+        2.Bean的行为配置元素 Bean behavioral configuration elements
+        3.对其他Bean的引用 References to other beans that are needed for the bean to do its work
+        4.创建Bean的其他配置 Other configuration settings to set in the newly created object。For example, the size limit 
+        of the pool or the number of connections to use in a bean that manages a connection pool.
+    -->
+
+    <!-- 这些metadata转换为bean definition属性：
+    Class,Name,Scope,Constructor arguments,Properties,Autowiring mode,Lazy initialization mode,Initialization method,Destruction method
+     -->
+
+    <!-- services -->
+    <!-- id和name属性：id是唯一的，而name是别名，可以有多个，用逗号、分号、空格分隔开 
+         当然，如果引用ref使用它们，id和name属性可以不提供，会有默认值，bean 名称以小写字母开头，并从那里开始采用驼峰式大小写。 -->
+    <!-- 可以为name指定别名。子系统A和子系统B都使用myApp-dataSource，但是A和B都只识别subsystemA-dataSource和subsystemB-dataSource
+        <alias name="myApp-dataSource" alias="subsystemA-dataSource"/>
+        <alias name="myApp-dataSource" alias="subsystemB-dataSource"/>
+    -->
+    <alias name="petStoreService" alias="toName"/>
+
+    <bean id="petStoreService" name="petStoreServiceName1 petStoreServiceName2" class="com.wang.service.impl.PetStoreServiceImpl">
+        <property name="petStoreDao" ref="petStoreDao"/>
+        <!-- additional collaborators and configuration for this bean go here -->
+    </bean>
+
+
+    <!-- 三种方法 Instantiating Beans
+    构造方法(Constructor)、静态方法(Static Factory Method)、实例方法(Instance Factory Method) -->
+    <!-- 构造方法 -->
+    <bean id="byConstructor" class="com.wang.createbean.ByConstructor"></bean>
+    <!-- 静态工厂 -->
+    <bean id="byStaticFactory" class="com.wang.createbean.ByStaticFactory" factory-method="createInstance"/>
+    <!-- 实例工厂 -->
+    <bean id="byInstanceFactory" class="com.wang.createbean.ByInstanceFactory"/>
+    <!-- the bean to be created via the factory bean -->
+    <bean id="demoBeanInstance" factory-bean="byInstanceFactory" factory-method="createDemoBeanInstance"/>
+
+    <!-- 依赖注入：Dependency injection (DI) is a process whereby objects define their dependencies (that is, the other 
+    objects with which they work) only through constructor arguments, arguments to  a factory method, or properties that 
+    are set on the object instance after it is constructed or returned from a factory method. 
+    
+    依赖注入存在两种主要的变体(major variants)：基于构造方法的依赖注入 Constructor-based
+                                                复杂类型：
+                                                    <beans>
+                                                        <bean id="beanOne" class="x.y.ThingOne">
+                                                            <constructor-arg ref="beanTwo"/>
+                                                            <constructor-arg ref="beanThree"/>
+                                                        </bean>
+                                                    
+                                                        <bean id="beanTwo" class="x.y.ThingTwo"/>
+                                                        <bean id="beanThree" class="x.y.ThingThree"/>
+                                                    </beans>
+                                                简单类型(无法进行自动匹配)： 
+                                                    a.通过类型 type：
+                                                        <bean id="exampleBean" class="examples.ExampleBean">
+                                                            <constructor-arg type="int" value="7500000"/>
+                                                            <constructor-arg type="java.lang.String" value="42"/>
+                                                        </bean>
+                                                    b.通过索引 index：除了解决多个简单值的歧义之外，指定索引还可以解决构造函数具有两个相同类型的参数时的歧义。
+                                                        注意：索引从0开始
+                                                        <bean id="exampleBean" class="examples.ExampleBean">
+                                                            <constructor-arg index="0" value="7500000"/>
+                                                            <constructor-arg index="1" value="42"/>
+                                                        </bean>
+                                                    c.构造参数名称 name：@ConstructorProperties({"years", "ultimateAnswer"})
+                                                        <bean id="exampleBean" class="examples.ExampleBean">
+                                                            <constructor-arg name="years" value="7500000"/>
+                                                            <constructor-arg name="ultimateAnswer" value="42"/>
+                                                        </bean>
+                                          基于setter的依赖注入 Setter-based 
+                                          public class SimpleMovieLister {
+                                                // the SimpleMovieLister has a dependency on the MovieFinder
+                                                private MovieFinder movieFinder;
+                                            
+                                                // a setter method so that the Spring container can inject a MovieFinder
+                                                public void setMovieFinder(MovieFinder movieFinder) {
+                                                    this.movieFinder = movieFinder;
+                                                }
+                                            
+                                                // business logic that actually uses the injected MovieFinder is omitted...
+                                          }
+                                          
+                                          使用 Constructor-based 还是 Setter-based？
+                                          对于强制依赖项，使用Constructor-based，对于可选依赖项，使用Setter-based。引用第三方类时，
+                                          Constructor-based 往往是必须的。
+                                          
+                                          
+                                          -->
+
+    <!-- 注入类型：Straight Values (Primitives, Strings, and so on) 
+                 References to Other Beans (Collaborators) -->
+
+    <!-- p 命名空间简化 
+    <bean id="myDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        results in a setDriverClassName(String) call
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/mydb"/>
+        <property name="username" value="root"/>
+        <property name="password" value="misterkaoli"/>
+    </bean>
+    
+    <bean id="myDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close"
+          p:driverClassName="com.mysql.jdbc.Driver"
+          p:url="jdbc:mysql://localhost:3306/mydb"
+          p:username="root"
+          p:password="misterkaoli"/> 
+    
+    <bean id="mappings"
+    class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+
+    <bean id="mappings"
+    class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+
+    typed as a java.util.Properties
+    <bean id="mappings" class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+        <property name="properties">
+            <value>
+                jdbc.driver.className=com.mysql.jdbc.Driver
+                jdbc.url=jdbc:mysql://localhost:3306/mydb
+            </value>
+        </property>
+    </bean>
+    -->
+
+    <!-- idref 元素：
+        <bean id="theTargetBean" class="..."/>
+        <bean id="theClientBean" class="...">
+            <property name="targetName">
+                <idref bean="theTargetBean"/>
+            </property>
+        </bean>
+    相当于：
+        <bean id="theTargetBean" class="..." />
+        <bean id="client" class="...">
+            <property name="targetName" value="theTargetBean"/>
+        </bean> 
+    第一种是推荐写法，因为使用 idref 标记可以让容器在部署时验证所引用的命名 bean 是否确实存在。
+    如果Bean的生命周期是prototype，那么如果拼写错误，就会出现异常，而项目已经部署了  -->
+
+    <!-- The ref element is the final element inside a <constructor-arg/> or <property/> definition element. 
+    ref的属性：bean 和 parent
+    <ref bean="someBean"/>
+    
+    in the parent context
+    <bean id="accountService" class="com.something.SimpleAccountService">
+        insert dependencies as required here
+    </bean>
+    in the child (descendant) context
+    <bean id="accountService"
+        bean name is the same as the parent bean
+        class="org.springframework.aop.framework.ProxyFactoryBean">
+        <property name="target">
+            <ref parent="accountService"/> notice how we refer to the parent bean
+        </property>
+        insert other configuration and dependencies as required here
+    </bean> -->
+
+
+    <!-- 内部 Bean 
+    <bean id="outer" class="...">
+        instead of using a reference to a target bean, simply define the target bean inline 
+        <property name="target">
+            <bean class="com.example.Person"> this is the inner bean，内部Bean不需要定义id和name，即使指定了，容器也不为用它们作为
+                标识符；容器还会忽略scope属性
+                <property name="name" value="Fiona Apple"/>
+                <property name="age" value="25"/>
+            </bean>
+        </property>
+    </bean> -->
+
+    <!-- 集合 Collection
+    <bean id="moreComplexObject" class="example.ComplexObject">
+        results in a setAdminEmails(java.util.Properties) call
+        <property name="adminEmails">
+            <props>
+                <prop key="administrator">administrator@example.org</prop>
+                <prop key="support">support@example.org</prop>
+                <prop key="development">development@example.org</prop>
+            </props>
+        </property>
+        results in a setSomeList(java.util.List) call
+        <property name="someList">
+            <list>
+                <value>a list element followed by a reference</value>
+                <ref bean="myDataSource" />
+            </list>
+        </property>
+        results in a setSomeMap(java.util.Map) call
+        <property name="someMap">
+            <map>
+                <entry key="an entry" value="just some string"/>
+                <entry key="a ref" value-ref="myDataSource"/>
+            </map>
+        </property>
+        results in a setSomeSet(java.util.Set) call
+        <property name="someSet">
+            <set>
+                <value>just some string</value>
+                <ref bean="myDataSource" />
+            </set>
+        </property>
+    </bean>  -->
+
+    <!-- 集合合并：child的结果是父子合并的结果，并且child会覆盖parent同名的值。只能merge同类型的集合，且merge加在低级别、child中，加在parent无效
+    <beans>
+        <bean id="parent" abstract="true" class="example.ComplexObject">
+            <property name="adminEmails">
+                <props>
+                    <prop key="administrator">administrator@example.com</prop>
+                    <prop key="support">support@example.com</prop>
+                </props>
+            </property>
+        </bean>
+        <bean id="child" parent="parent">
+            <property name="adminEmails">
+                the merge is specified on the child collection definition
+                <props merge="true">
+                    <prop key="sales">sales@example.com</prop>
+                    <prop key="support">support@example.co.uk</prop>
+                </props>
+            </property>
+        </bean>
+    <beans> -->
+
+    <!-- 强类型转换 Strongly-typed collection 
+    得益于泛型generic types特性，Spring反射的时候可以识别泛型，转换成对应的值
+    public class SomeClass {
+        private Map<String, Float> accounts;
+        public void setAccounts(Map<String, Float> accounts) {
+            this.accounts = accounts;
+        }
+    }
+    <beans>
+        <bean id="something" class="x.y.SomeClass">
+            <property name="accounts">
+                <map>
+                    <entry key="one" value="9.99"/>
+                    <entry key="two" value="2.75"/>
+                    <entry key="six" value="3.99"/>
+                </map>
+            </property>
+        </bean>
+    </beans> -->
+
+    <!-- Null值和空字符串  Null and Empty String Values
+    <bean class="ExampleBean">
+        <property name="email" value=""/>
+    </bean>
+    相当于: exampleBean.setEmail("");
+    
+    <bean class="ExampleBean">
+        <property name="email">
+            <null/>
+        </property>
+    </bean>
+    相当于: exampleBean.setEmail(null); -->
+
+    <!-- 带有p命名空间的XML快捷方式 XML Shortcut with the p-namespace，可代替<property/>元素
+    添加：xmlns:p="http://www.springframework.org/schema/p"
+    p-namespace并未在XSD中定义，而是Spring的一部分
+    
+    <bean name="john-classic" class="com.example.Person">
+        <property name="name" value="John Doe"/>
+        <property name="spouse" ref="jane"/>
+    </bean>
+
+    <bean name="john-modern" class="com.example.Person"
+          p:name="John Doe"
+          p:spouse-ref="jane"/>
+
+    <bean name="jane" class="com.example.Person">
+        <property name="name" value="Jane Doe"/>
+    </bean> -->
+
+    <!-- 带有 c 命名空间的 XML 快捷方式 XML Shortcut with the c-namespace，可代替<constructor-arg/>元素
+    添加：xmlns:c="http://www.springframework.org/schema/c"
+    c-namespace并未在XSD中定义，而是Spring的一部分
+    
+    <bean id="beanTwo" class="x.y.ThingTwo"/>
+    <bean id="beanThree" class="x.y.ThingThree"/>
+
+    traditional declaration with optional argument names
+    <bean id="beanOne" class="x.y.ThingOne">
+        <constructor-arg name="thingTwo" ref="beanTwo"/>
+        <constructor-arg name="thingThree" ref="beanThree"/>
+        <constructor-arg name="email" value="something@somewhere.com"/>
+    </bean>
+
+    c-namespace declaration with argument names
+    <bean id="beanOne" class="x.y.ThingOne" c:thingTwo-ref="beanTwo"
+          c:thingThree-ref="beanThree" c:email="something@somewhere.com"/>
+          
+    特殊情况，不知道name的时候(例如如果字节码是在没有调试信息的情况下编译的)，可以使用索引：
+    c-namespace index declaration，需要是_开头，因为XML语法不允许数字开头
+    <bean id="beanOne" class="x.y.ThingOne" c:_0-ref="beanTwo" c:_1-ref="beanThree"
+          c:_2="something@somewhere.com"/>
+    -->
+
+    <!-- 复合属性名称 Compound Property Names 
+    <bean id="something" class="things.ThingOne">
+        <property name="fred.bob.sammy" value="123" />
+    </bean> -->
+
+    <!-- depends on 属性，例如当需要出发类中的静态初始化的时候，比如数据库初始化。
+    depends on可以有多个，用逗号、分号、空格隔开
+    depends on不仅可以控制开启顺序，还同时控制关闭顺序
+    <bean id="beanOne" class="ExampleBean" depends-on="manager,accountDao">
+        <property name="manager" ref="manager" />
+    </bean>
+
+    <bean id="manager" class="ManagerBean" />
+    <bean id="accountDao" class="x.y.jdbc.JdbcAccountDao" /> -->
+
+    <!-- 懒加载、延时加载 Lazy-initialized Beans 
+    <bean id="lazy" class="com.something.ExpensiveToCreateBean" lazy-init="true"/>
+    <bean name="not.lazy" class="com.something.AnotherBean"/>
+    
+    也可以在容器级别设置：
+    <beans default-lazy-init="true">
+        no beans will be pre-instantiated...
+    </beans>
+    -->
+
+    <!-- 自动装配 Autowiring Collaborators
+    Autowiring can significantly reduce the need to specify properties or constructor arguments. 
+    Autowiring can update a configuration as your objects evolve. 
+    在基于XML的配置文件中，可以在<bean/>元素中设置autowire属性完成自动装配
+    四种自动装配模式 Autowiring modes：
+        no(默认)、byName、byType、constructor
+        With byType or constructor autowiring mode, you can wire arrays and typed collections.
+        
+    自动装配的局限性和缺点 Limitations and Disadvantages of Autowiring
+        在property and constructor-arg中配置的显示依赖始终会覆盖自动装配的结果；自动装配不适用于简单值，比如primitives、Strings、Classes、arrays
+        自动装配不如显示装配清晰，没有明确的记录
+        一些从spring容器中生成文档的工具可能无法利用装配信息
+        Multiple bean definitions within the container may match the type specified by the setter method or constructor argument to be autowired.
+        
+    从自动装配中排除Bean Excluding a Bean from Autowiring(这并不是排除的bean不能使用自动装配，而是不能成为自动装配的候选者)
+        设置 autowire-candidate为false，这种只影响type-based类型的自动装配，name-based不受影响
+        通过bean名称模式匹配来限制自动装配的候选者，<beans/>的属性default-autowire-candidates，支持多个模式匹配，用逗号分割
+     -->
+
+    <!-- 方法注入 Method Injection 
+    查找方法替换Lookup Method Injection：查找方法注入是容器重写容器管理的 Bean 上的方法并返回容器中另一个命名 Bean 的查找结果的能力。
+            a stateful bean deployed as a prototype (non-singleton)
+                <bean id="myCommand" class="fiona.apple.AsyncCommand" scope="prototype">
+                    inject dependencies here as required
+                </bean>
+        
+            commandProcessor uses statefulCommandHelper
+            基于XML：
+                <bean id="commandManager" class="fiona.apple.CommandManager">
+                    <lookup-method name="createCommand" bean="myCommand"/>
+                </bean> 
+            基于注解：
+                public abstract class CommandManager {
+                    public Object process(Object commandState) {
+                        Command command = createCommand();
+                        command.setState(commandState);
+                        return command.execute();
+                    }
+                
+                    @Lookup("myCommand")
+                    protected abstract Command createCommand();
+                } 
+    任意方法替换Arbitrary Method Replacement(基本不用)：
+            <bean id="myValueCalculator" class="x.y.z.MyValueCalculator">
+                arbitrary method replacement
+                <replaced-method name="computeValue" replacer="replacementComputeValue">
+                    <arg-type>String</arg-type>
+                </replaced-method>
+            </bean>
+
+            <bean id="replacementComputeValue" class="a.b.c.ReplacementComputeValue"/> -->
+
+    <!-- Bean的作用域 Bean Scopes
+    spring支持6中作用域，其中4种是web-aware ApplicationContext
+    
+    Singleton Scope(默认)：
+        <bean id="accountService" class="com.something.DefaultAccountService"/>
+        the following is equivalent, though redundant (singleton scope is the default)
+        <bean id="accountService" class="com.something.DefaultAccountService" scope="singleton"/>
+    
+    Prototype Scope：
+        这种模式下，spring不管理bean的声明周期，但是都会调用初始化生命周期回调方法，不会调用销毁方法
+        <bean id="accountService" class="com.something.DefaultAccountService" scope="prototype"/> 
+    
+    单例Bean依赖非单例Bean： 
+        Singleton Beans with Prototype-bean Dependencies，这种情况下可以用Method Injection，因为单例bean只初始化1次，它所依赖的prototype bean只被初始化一次
+        
+     Web环境下(例如XmlWebApplicationContext)的作用域：Request, Session, Application, and WebSocket Scopes：
+        这种环境下，需要Initial Web Configuration，作用域才有效，而如何初始化，又取决于Servlet环境
+        如果是使用的Spring Web MVC，DispatcherServlet处理的请求已经暴露了所有的状态。
+        如果使用的是Servlet 2.5 web container，当用JSF、Structs时，需要注册org.springframework.web.context.request.RequestContextListener ServletRequestListener.
+        如果是Servlet 3.0+，可以通过WebApplicationInitializer接口来以编程的方式来做
+        在web.xml中注册：
+            <web-app>
+                ...
+                <listener>
+                    <listener-class>
+                        org.springframework.web.context.request.RequestContextListener
+                    </listener-class>
+                </listener>
+                ...
+            </web-app>
+        如果设置监听器listener有问题，则设置过滤器filter：
+            <web-app>
+                ...
+                <filter>
+                    <filter-name>requestContextFilter</filter-name>
+                    <filter-class>org.springframework.web.filter.RequestContextFilter</filter-class>
+                </filter>
+                <filter-mapping>
+                    <filter-name>requestContextFilter</filter-name>
+                    <url-pattern>/*</url-pattern>
+                </filter-mapping>
+                ...
+            </web-app>
+     DispatcherServlet, RequestContextListener, and RequestContextFilter做的是同样的事情，都是将HTTP请求绑定到处理请求的线程，这样可以让后面的调用链都可以使用
+     
+     配置以下作用域：
+        Request scope：
+             <bean id="loginAction" class="com.something.LoginAction" scope="request"/>
+             Spring为每个HTTP请求都创建一个Bean loginAction，当请求处理完毕时，这个Bean就会被丢弃
+             当时用annotation-driven components 或 Java configuration时，可以使用@RequestScope注解 
+                @RequestScope
+                @Component
+                public class LoginAction {
+                    // ...
+                }
+        Session Scope：
+            <bean id="userPreferences" class="com.something.UserPreferences" scope="session"/>
+            或者：
+            @SessionScope
+            @Component
+            public class UserPreferences {
+                // ...
+            }
+        Application Scope：
+            <bean id="appPreferences" class="com.something.AppPreferences" scope="application"/>
+            类似于Spring的singleton bean，但是有区别，它对应ServletContext，而singleton bean对应ApplicationContext
+            或者：
+            @ApplicationScope
+            @Component
+            public class AppPreferences {
+                // ...
+            }
+        WebSocket Scope：WebSocket session
+        
+        作用域Bean作为依赖Scoped Beans as Dependencies：通过注入AOP代理注册一个代理对象来替代scoped bean
+        正确且完整的：
+        xmlns:aop="http://www.springframework.org/schema/aop"
+        xsi:schemaLocation：
+                    http://www.springframework.org/schema/aop
+                    https://www.springframework.org/schema/aop/spring-aop.xsd
+        <bean id="userPreferences" class="com.something.UserPreferences" scope="session">   短声明周期对象
+            <aop:scoped-proxy/>
+        </bean>
+        <bean id="userManager" class="com.something.UserManager">    长生命周期对象
+            <property name="userPreferences" ref="userPreferences"/>
+        </bean> -->
+
+    <!-- 代理对象的选择
+    默认请款下：CGLIB-based class proxy
+    可以更改使用其他代理  JDK interface-based proxies ：
+        DefaultUserPreferences implements the UserPreferences interface
+        <bean id="userPreferences" class="com.stuff.DefaultUserPreferences" scope="session">
+            <aop:scoped-proxy proxy-target-class="false"/>
+        </bean>
+    
+        <bean id="userManager" class="com.stuff.UserManager">
+            <property name="userPreferences" ref="userPreferences"/>
+        </bean> -->
+
+    <!-- 自定义作用域 Custom Scopes
+    可以自定义作用域或者重新定义现有的作用域，但是不能覆盖singleton and prototype作用域
+    自定义作用域：
+        编程方式：
+            a.创建：
+                实现org.springframework.beans.factory.config.Scope接口
+                The Scope interface has four methods to get objects from the scope、remove them from the scope、and let them be destroyed.
+            b.使用：
+                注册：ConfigurableBeanFactory#void registerScope(String scopeName, Scope scope);
+                例如：Scope threadScope = new SimpleThreadScope();
+                     beanFactory.registerScope("thread", threadScope);
+                     
+                     <bean id="..." class="..." scope="thread">
+        声明方式：
+            <bean class="org.springframework.beans.factory.config.CustomScopeConfigurer">
+                <property name="scopes">
+                    <map>
+                        <entry key="thread">
+                            <bean class="org.springframework.context.support.SimpleThreadScope"/>
+                        </entry>
+                    </map>
+                </property>
+            </bean>
+        
+            <bean id="thing2" class="x.y.Thing2" scope="thread">
+                <property name="name" value="Rick"/>
+                <aop:scoped-proxy/>
+            </bean>
+        
+            <bean id="thing1" class="x.y.Thing1">
+                <property name="thing2" ref="thing2"/>
+            </bean> -->
+
+    <!-- 自定义Bean特性 Customizing the Nature of a Bean 
+        a. Lifecycle Callbacks 生命周期回调
+        b. ApplicationContextAware and BeanNameAware  Aware接口 
+        c. Other Aware Interfaces 其他Aware接口
+        
+        a.Lifecycle Callbacks
+            spring推荐：使用JSR-250规范的 @PostConstruct and @PreDestroy，或者使用init-method and destroy-method，而不是使用实现接口的方式。
+            或者实现org.springframework.context.Lifecycle接口，以获取更早的初始化或销毁信号。
+            
+            初始化回调：
+                使用bean定义元数据 init-method
+                <bean id="exampleInitBean" class="examples.ExampleBean" init-method="init"/>
+                public class ExampleBean {
+                    public void init() {
+                        // do some initialization work
+                    }
+                }
+                
+                等效于：org.springframework.beans.factory.InitializingBean#afterPropertiesSet()  与Spring耦合
+                <bean id="exampleInitBean" class="examples.AnotherExampleBean"/>
+                public class AnotherExampleBean implements InitializingBean {
+                    @Override
+                    public void afterPropertiesSet() {
+                        // do some initialization work
+                    }
+                }
+                
+            销毁回调：Destruction Callbacks
+                使用bean定义元数据 destroy-method
+                <bean id="exampleInitBean" class="examples.ExampleBean" destroy-method="cleanup"/>
+                public class ExampleBean {
+                    public void cleanup() {
+                        // do some destruction work (like releasing pooled connections)
+                    }
+                }
+
+                等效于：org.springframework.beans.factory.DisposableBean#destroy()  与Spring耦合
+                <bean id="exampleInitBean" class="examples.AnotherExampleBean"/>
+                public class AnotherExampleBean implements DisposableBean {
+                    @Override
+                    public void destroy() {
+                        // do some destruction work (like releasing pooled connections)
+                    }
+                }
+                
+            默认的初始化和销毁方法 Default Initialization and Destroy Methods：
+                public class DefaultBlogService implements BlogService {
+                    private BlogDao blogDao;
+                    public void setBlogDao(BlogDao blogDao) {
+                        this.blogDao = blogDao;
+                    }
+                    // this is (unsurprisingly) the initialization callback method
+                    public void init() {
+                        if (this.blogDao == null) {
+                            throw new IllegalStateException("The [blogDao] property must be set.");
+                        }
+                    }
+                }
+                可以在<beans>标签中配置：这样可以对所有的bean都同一配置初始化方法，需要初始化的bean只需要写一个同名的init方法即可，实现统一标准管理
+                <beans default-init-method="init">
+                    <bean id="blogService" class="com.something.DefaultBlogService">
+                        <property name="blogDao" ref="blogDao" />
+                    </bean>
+                </beans>
+                同理，销毁方法 <beans default-destroy-method="destroy">
+                注意：init-method、destroy-method会覆盖default-init-method、default-destroy-method
+                
+                The Spring container guarantees that a configured initialization callback is called immediately 
+                after a bean is supplied with all dependencies. 
+                Spring容器保证在注入所有依赖后调用回调方法。因此，AOP拦截器等还没有得到应用
+                Thus, the initialization callback is called on the raw bean reference, which means that AOP interceptors 
+                and so forth are not yet applied to the bean.
+                
+                三种生命周期方法：同名的方法会覆盖，不同名的按照下列顺序执行
+                    初始化：Methods annotated with @PostConstruct
+                          afterPropertiesSet() as defined by the InitializingBean callback interface
+                          A custom configured init() method
+                    销毁：Methods annotated with @PreDestroy
+                        destroy() as defined by the DisposableBean callback interface
+                        A custom configured destroy() method
+                        
+            启动和关闭回调 Startup and Shutdown Callbacks：
+                org.springframework.context.Lifecycle接口
+                public interface Lifecycle {
+                    void start();
+                    void stop();
+                    boolean isRunning();
+                }
+                它通过委托给LifecycleProcessor去做：
+                public interface LifecycleProcessor extends Lifecycle {
+                    void onRefresh();
+                    void onClose();
+                }
+                
+                用于对自动启动进行细粒度控制以及特定 bean 的正常停止，考虑使用：org.springframework.context.SmartLifecycle
+                另请注意，不保证在销毁之前发出停止通知。However, on hot refresh during a context’s lifetime or on stopped refresh attempts, only destroy methods are called.
+                public interface SmartLifecycle extends Lifecycle, Phased {
+                    boolean isAutoStartup();
+                    void stop(Runnable callback);
+                }
+                public interface Phased {
+                    int getPhase();
+                }
+                启动时，低phase先启动；停止时，顺序则相反。实现 SmartLifecycle 且其 getPhase() 方法返回 Integer.MIN_VALUE 的对象将是最先启动和最后停止的对象。
+                因此，任何未实现SmartLifecycle接口的Lifecycle对象的默认phase值都是0。
+                而实现了SmartLifecycle接口的对象：默认值：int DEFAULT_PHASE = Integer.MAX_VALUE; 如果phase值如果设置为负数，则优先级最高、最先启动。
+                
+                SmartLifecycle定义的stop()方法，接受一个Runnable类型的参数，可以实现异步关闭
+                <bean id="lifecycleProcessor" class="org.springframework.context.support.DefaultLifecycleProcessor">
+                    timeout value in milliseconds
+                    <property name="timeoutPerShutdownPhase" value="10000"/>
+                </bean>
+                默认的LifecycleProcessor的实现是DefaultLifecycleProcessor，它等待每个阶段中的对象组达到其超时值以调用该回调。默认per-phase超时为 30 秒。
+                
+                在非Web环境中关闭spring IoC容器 Shutting Down the Spring IoC Container Gracefully in Non-Web Applications
+                    实现ConfigurableApplicationContext#registerShutdownHook()：
+                    public final class Boot {
+                        public static void main(final String[] args) throws Exception {
+                            ConfigurableApplicationContext ctx = new ClassPathXmlApplicationContext("beans.xml");
+                            // add a shutdown hook for the above context...
+                            ctx.registerShutdownHook();
+                            // app runs here...
+                            // main method exits, hook is called prior to the app shutting down...
+                        }
+                    }
+        b. ApplicationContextAware and BeanNameAware  Aware接口 
+            public interface ApplicationContextAware {
+                void setApplicationContext(ApplicationContext applicationContext) throws BeansException;
+            }
+            public interface BeanNameAware {
+                void setBeanName(String name) throws BeansException;
+            }
+        c. Other Aware Interfaces 其他Aware接口
+            ApplicationContextAware
+            ApplicationEventPublisherAware
+            BeanClassLoaderAware        Instantiating Beans
+            BeanFactoryAware
+            BeanNameAware
+            LoadTimeWeaverAware
+            MessageSourceAware
+            NotificationPublisherAware
+            ResourceLoaderAware          Resource
+            ServletConfigAware           SpringMVC
+            ServletContextAware          SpringMVC
+            使用Aware相关的接口会将代码与Spring API联系起来，并且不遵循控制反转风格 -->
+
+
+    <!-- Bean定义继承Bean Definition Inheritance 
+            <bean id="inheritedTestBean" abstract="true" class="org.springframework.beans.TestBean">
+                <property name="name" value="parent"/>
+                <property name="age" value="1"/>
+            </bean>
+            <bean id="inheritsWithDifferentClass" class="org.springframework.beans.DerivedTestBean"
+                    parent="inheritedTestBean" init-method="initialize">  
+                <property name="name" value="override"/>
+                the age property value of 1 will be inherited from parent
+            </bean>
+            
+            如果父定义没有指定类，则abstract属性要设置为true；容器相关的操作则会忽视抽象的Bean定义
+            <bean id="inheritedTestBeanWithoutClass" abstract="true">
+                <property name="name" value="parent"/>
+                <property name="age" value="1"/>
+            </bean>
+            <bean id="inheritsWithClass" class="org.springframework.beans.DerivedTestBean"
+                    parent="inheritedTestBeanWithoutClass" init-method="initialize">
+                <property name="name" value="override"/>
+                age will inherit the value of 1 from the parent bean definition
+            </bean> -->
+
+    <!-- 容器扩展点 Container Extension Points 
+    -->
+</beans>

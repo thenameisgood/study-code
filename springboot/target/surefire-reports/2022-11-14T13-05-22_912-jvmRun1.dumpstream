@@ -1,0 +1,207 @@
+# Created at 2022-11-14T13:05:24.576
+TestSet has not finished before stream error has appeared >> initializing exit by non-null configuration: null
+java.io.EOFException
+	at java.io.DataInputStream.readInt(DataInputStream.java:392)
+	at org.apache.maven.surefire.booter.MasterProcessCommand.decode(MasterProcessCommand.java:115)
+	at org.apache.maven.surefire.booter.CommandReader$CommandRunnable.run(CommandReader.java:391)
+	at java.lang.Thread.run(Thread.java:750)
+
+
+# Created at 2022-11-14T13:05:25.828
+Unexpected IOException with stream: Logging initialized using 'class org.apache.ibatis.logging.stdout.StdOutImpl' adapter.
+
+
+# Created at 2022-11-14T13:05:26.262
+Unexpected IOException with stream: Parsed mapper file: 'file [D:\java-project\study-code\springboot\target\classes\mapper\UserMapper.xml]'
+
+
+# Created at 2022-11-14T13:05:27.600
+Unexpected IOException with stream: 2022-11-14 13:05:27.599  INFO 1692 --- [           main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@7841bd30, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@45c80312, org.springframework.security.web.context.SecurityContextPersistenceFilter@24876a7e, org.springframework.security.web.header.HeaderWriterFilter@480cbe2e, org.springframework.web.filter.CorsFilter@7bd38fed, com.wang.filter.JwtAuthenticationFilter@5ccb85d6, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@5a1dddba, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@1a9ec80e, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@377dfb8d, org.springframework.security.web.session.SessionManagementFilter@2ee39e73, org.springframework.security.web.access.ExceptionTranslationFilter@3b78c683, org.springframework.security.web.access.intercept.FilterSecurityInterceptor@6aae0e6f]
+
+
+# Created at 2022-11-14T13:05:28.495
+Unexpected IOException with stream: 2022-11-14 13:05:28.495  INFO 1692 --- [           main] com.wang.dao.UserDaoTests                : Started UserDaoTests in 4.557 seconds (JVM running for 5.263)
+
+
+# Created at 2022-11-14T13:05:28.499
+Unexpected IOException with stream: 应用启动时需要做的功能
+
+
+# Created at 2022-11-14T13:05:28.529
+Unexpected IOException: 5,1,com.wang.dao.UserDaoTests,selectUserById,null,null,null
+
+
+# Created at 2022-11-14T13:05:28.886
+Unexpected IOException with stream: Creating a new SqlSession
+
+
+# Created at 2022-11-14T13:05:28.892
+Unexpected IOException with stream: SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@6ce2e079] was not registered for synchronization because synchronization is not active
+
+
+# Created at 2022-11-14T13:05:28.907
+Unexpected IOException with stream: 2022-11-14 13:05:28.904  INFO 1692 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+
+
+# Created at 2022-11-14T13:05:29.255
+Unexpected IOException with stream: 2022-11-14 13:05:29.254  INFO 1692 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+
+
+# Created at 2022-11-14T13:05:29.259
+Unexpected IOException with stream: JDBC Connection [HikariProxyConnection@192393376 wrapping com.mysql.cj.jdbc.ConnectionImpl@15be68b] will not be managed by Spring
+
+
+# Created at 2022-11-14T13:05:29.264
+Unexpected IOException with stream: ==>  Preparing: select * from t_user where id = ?
+
+
+# Created at 2022-11-14T13:05:29.291
+Unexpected IOException with stream: ==> Parameters: 3(Long)
+
+
+# Created at 2022-11-14T13:05:29.324
+Unexpected IOException with stream: <==    Columns: id, name, password, email, role_id, status, create_time, update_time, delete_time, delete_flag
+
+
+# Created at 2022-11-14T13:05:29.325
+Unexpected IOException with stream: <==        Row: 3, 河马, $2a$10$Ur7viNbNNvlLa7IE3Cd0MegTYsXh0uKV1DZAUm/2Nw/Tpjznheq8m, xiaohema@126.com, 1, 0, null, null, null, 0
+
+
+# Created at 2022-11-14T13:05:29.330
+Unexpected IOException with stream: <==      Total: 1
+
+
+# Created at 2022-11-14T13:05:29.334
+Unexpected IOException with stream: Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@6ce2e079]
+
+
+# Created at 2022-11-14T13:05:29.336
+Unexpected IOException with stream: User(id=3, name=河马, password=$2a$10$Ur7viNbNNvlLa7IE3Cd0MegTYsXh0uKV1DZAUm/2Nw/Tpjznheq8m, email=xiaohema@126.com, roleId=1, status=0, createTime=null, updateTime=null, deleteTime=null, deleteFlag=0)
+
+# Created at 2022-11-14T13:05:29.336
+Unexpected IOException with stream: 
+
+
+# Created at 2022-11-14T13:05:29.345
+Unexpected IOException: 6,1,com.wang.dao.UserDaoTests,selectUserById,null,null,null
+
+
+# Created at 2022-11-14T13:05:29.347
+Unexpected IOException: 5,1,com.wang.dao.UserDaoTests,selectUserByName,null,null,null
+
+
+# Created at 2022-11-14T13:05:29.348
+Unexpected IOException with stream: Creating a new SqlSession
+
+
+# Created at 2022-11-14T13:05:29.349
+Unexpected IOException with stream: SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1131aead] was not registered for synchronization because synchronization is not active
+
+
+# Created at 2022-11-14T13:05:29.349
+Unexpected IOException with stream: JDBC Connection [HikariProxyConnection@2098356355 wrapping com.mysql.cj.jdbc.ConnectionImpl@15be68b] will not be managed by Spring
+
+
+# Created at 2022-11-14T13:05:29.349
+Unexpected IOException with stream: ==>  Preparing: select * from t_user where name = ?
+
+
+# Created at 2022-11-14T13:05:29.350
+Unexpected IOException with stream: ==> Parameters: 小老虎(String)
+
+
+# Created at 2022-11-14T13:05:29.352
+Unexpected IOException with stream: <==    Columns: id, name, password, email, role_id, status, create_time, update_time, delete_time, delete_flag
+
+
+# Created at 2022-11-14T13:05:29.352
+Unexpected IOException with stream: <==        Row: 1, 小老虎, $2a$10$Ur7viNbNNvlLa7IE3Cd0MegTYsXh0uKV1DZAUm/2Nw/Tpjznheq8m, changjinglu@163.com, 1, 0, null, null, null, 0
+
+
+# Created at 2022-11-14T13:05:29.353
+Unexpected IOException with stream: <==      Total: 1
+
+
+# Created at 2022-11-14T13:05:29.354
+Unexpected IOException with stream: Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1131aead]
+
+
+# Created at 2022-11-14T13:05:29.355
+Unexpected IOException with stream: User(id=1, name=小老虎, password=$2a$10$Ur7viNbNNvlLa7IE3Cd0MegTYsXh0uKV1DZAUm/2Nw/Tpjznheq8m, email=changjinglu@163.com, roleId=1, status=0, createTime=null, updateTime=null, deleteTime=null, deleteFlag=0)
+
+# Created at 2022-11-14T13:05:29.355
+Unexpected IOException with stream: 
+
+
+# Created at 2022-11-14T13:05:29.358
+Unexpected IOException: 6,1,com.wang.dao.UserDaoTests,selectUserByName,null,null,null
+
+
+# Created at 2022-11-14T13:05:29.360
+Unexpected IOException: 2,1,org.apache.maven.surefire.junitplatform.JUnitPlatformProvider,com.wang.dao.UserDaoTests,null,null,null
+
+
+# Created at 2022-11-14T13:05:29.361
+Unexpected IOException: 1,1,org.apache.maven.surefire.junitplatform.JUnitPlatformProvider,com.wang.SpringbootFirstApplicationTests,null,null,null
+
+
+# Created at 2022-11-14T13:05:29.363
+Unexpected IOException with stream: 2022-11-14 13:05:29.362  INFO 1692 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Neither @ContextConfiguration nor @ContextHierarchy found for test class [com.wang.SpringbootFirstApplicationTests], using SpringBootContextLoader
+
+
+# Created at 2022-11-14T13:05:29.364
+Unexpected IOException with stream: 2022-11-14 13:05:29.364  INFO 1692 --- [           main] o.s.t.c.support.AbstractContextLoader    : Could not detect default resource locations for test class [com.wang.SpringbootFirstApplicationTests]: no resource found for suffixes {-context.xml, Context.groovy}.
+
+
+# Created at 2022-11-14T13:05:29.365
+Unexpected IOException with stream: 2022-11-14 13:05:29.364  INFO 1692 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.wang.SpringbootFirstApplicationTests]: SpringbootFirstApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+
+
+# Created at 2022-11-14T13:05:29.369
+Unexpected IOException with stream: 2022-11-14 13:05:29.369  INFO 1692 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.wang.SpringbootFirstApplication for test class com.wang.SpringbootFirstApplicationTests
+
+
+# Created at 2022-11-14T13:05:29.372
+Unexpected IOException with stream: 2022-11-14 13:05:29.372  INFO 1692 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.boot.test.mock.mockito.MockitoTestExecutionListener, org.springframework.boot.test.mock.mockito.ResetMocksTestExecutionListener, org.springframework.boot.test.autoconfigure.restdocs.RestDocsTestExecutionListener, org.springframework.boot.test.autoconfigure.web.client.MockRestServiceServerResetTestExecutionListener, org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrintOnlyOnFailureTestExecutionListener, org.springframework.boot.test.autoconfigure.web.servlet.WebDriverTestExecutionListener, org.springframework.boot.test.autoconfigure.webservices.client.MockWebServiceServerTestExecutionListener, org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.event.ApplicationEventsTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener, org.springframework.test.context.event.EventPublishingTestExecutionListener, org.springframework.security.test.context.support.WithSecurityContextTestExecutionListener, org.springframework.security.test.context.support.ReactorContextTestExecutionListener]
+
+
+# Created at 2022-11-14T13:05:29.373
+Unexpected IOException with stream: 2022-11-14 13:05:29.373  INFO 1692 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@14201a90, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@1308ef19, org.springframework.test.context.event.ApplicationEventsTestExecutionListener@5b1ff8cd, org.springframework.boot.test.mock.mockito.MockitoTestExecutionListener@6cee903a, org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@780ee3ad, org.springframework.test.context.support.DirtiesContextTestExecutionListener@2c2aab92, org.springframework.test.context.transaction.TransactionalTestExecutionListener@857f74a, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@10a0d93a, org.springframework.test.context.event.EventPublishingTestExecutionListener@1f3c5308, org.springframework.security.test.context.support.WithSecurityContextTestExecutionListener@66b31d46, org.springframework.security.test.context.support.ReactorContextTestExecutionListener@51e94b7d, org.springframework.boot.test.mock.mockito.ResetMocksTestExecutionListener@47162173, org.springframework.boot.test.autoconfigure.restdocs.RestDocsTestExecutionListener@3a4f8e8a, org.springframework.boot.test.autoconfigure.web.client.MockRestServiceServerResetTestExecutionListener@4468fda8, org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrintOnlyOnFailureTestExecutionListener@5fc1e4fb, org.springframework.boot.test.autoconfigure.web.servlet.WebDriverTestExecutionListener@29aa4bc9, org.springframework.boot.test.autoconfigure.webservices.client.MockWebServiceServerTestExecutionListener@6fd7aba8]
+
+
+# Created at 2022-11-14T13:05:29.379
+Unexpected IOException: 5,1,com.wang.SpringbootFirstApplicationTests,BCryptPasswordEncoder,null,null,null
+
+
+# Created at 2022-11-14T13:05:29.456
+Unexpected IOException with stream: $2a$10$jYbZD.45Nw4JSG.OUQBzkuJf/teiDRohMpeM5tHm.1WpJvPrtYXUS
+
+
+# Created at 2022-11-14T13:05:29.459
+Unexpected IOException: 6,1,com.wang.SpringbootFirstApplicationTests,BCryptPasswordEncoder,null,null,null
+
+
+# Created at 2022-11-14T13:05:29.461
+Unexpected IOException: 5,1,com.wang.SpringbootFirstApplicationTests,contextLoads,null,null,null
+
+
+# Created at 2022-11-14T13:05:29.464
+Unexpected IOException: 6,1,com.wang.SpringbootFirstApplicationTests,contextLoads,null,null,null
+
+
+# Created at 2022-11-14T13:05:29.464
+Unexpected IOException: 2,1,org.apache.maven.surefire.junitplatform.JUnitPlatformProvider,com.wang.SpringbootFirstApplicationTests,null,null,null
+
+
+# Created at 2022-11-14T13:05:30.005
+Unexpected IOException with stream: 定时执行任务
+
+
+# Created at 2022-11-14T13:05:40.002
+Unexpected IOException with stream: 定时执行任务
+
+
+# Created at 2022-11-14T13:05:50.007
+Unexpected IOException with stream: 定时执行任务
+
+

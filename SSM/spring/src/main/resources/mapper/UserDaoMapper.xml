@@ -1,0 +1,12 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wang.springMybatis.dao.UserDao">
+
+    <insert id="saveOne" parameterType="com.wang.springMybatis.entity.User">
+        insert into t_user values (#{id},#{name},#{password})
+    </insert>
+
+    <select id="selectAll" resultType="com.wang.springMybatis.entity.User">
+        select id,name,password from t_user
+    </select>
+
+</mapper>

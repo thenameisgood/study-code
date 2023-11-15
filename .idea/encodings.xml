@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding" defaultCharsetForPropertiesFiles="UTF-8">
+    <file url="file://$PROJECT_DIR$/SSM/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/SSM/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/TCP-UDP/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/TCP-UDP/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/data-structure-algorithm/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/data-structure-algorithm/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/design-pattern/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/design-pattern/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/io-study/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/io-study/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/java8/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/java8/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/leetcode/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/leetcode/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/netty-elevator/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/netty/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/netty/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/rabbitmq/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/rabbitmq/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-sourcecode/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-sourcecode/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-study/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/spring-study/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/springboot/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/thread/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/thread/src/main/resources" charset="UTF-8" />
+    <file url="PROJECT" charset="UTF-8" />
+  </component>
+</project>

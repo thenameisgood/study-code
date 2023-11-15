@@ -1,0 +1,24 @@
+server:
+  port: 8888
+spring:
+  application:
+    name: springboot-first
+  datasource:
+    url: jdbc:mysql://localhost:3306/springboot_complete_knowladge?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+# Mybatis开启驼峰映射
+mybatis:
+  configuration:
+    mapUnderscoreToCamelCase: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    log-prefix: mybatis__
+  mapper-locations: classpath*:mapper/*Mapper.xml
+  type-aliases-package: com.wang.domain.entity
+logging:
+  level:
+    root: info
+  file:
+    path: ../
+    name: myLog
