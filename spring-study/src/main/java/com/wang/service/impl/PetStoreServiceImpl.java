@@ -1,6 +1,6 @@
 package com.wang.service.impl;
 
-import com.wang.dao.impl.PetStoreDao;
+import com.wang.dao.impl.PetStoreDaoImpl;
 import com.wang.entity.PetStore;
 import com.wang.service.PetStoreService;
 
@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 
 public class PetStoreServiceImpl implements PetStoreService {
 
-    private PetStoreDao petStoreDao;
+    private PetStoreDaoImpl petStoreDao;
 
     public List<String> getUsernameList() {
         List<PetStore> usernameList = petStoreDao.getUsernameList();
@@ -28,7 +28,7 @@ public class PetStoreServiceImpl implements PetStoreService {
     }
 
 
-    public void setPetStoreDao(PetStoreDao petStoreDao) {
+    public void setPetStoreDao(PetStoreDaoImpl petStoreDao) {
         this.petStoreDao = petStoreDao;
     }
 }

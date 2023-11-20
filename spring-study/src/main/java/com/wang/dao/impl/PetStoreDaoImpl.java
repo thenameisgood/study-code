@@ -1,11 +1,12 @@
 package com.wang.dao.impl;
 
+import com.wang.dao.PetStoreDao;
 import com.wang.entity.PetStore;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class PetStoreDao implements com.wang.dao.PetStoreDao {
+public class PetStoreDaoImpl implements PetStoreDao {
 
     public List<PetStore> getUsernameList(){
         PetStore petStore0 = new PetStore("小王", "宠物1店", "山东泰安");

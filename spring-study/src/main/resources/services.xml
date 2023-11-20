@@ -4,10 +4,43 @@
        xmlns:p="http://www.springframework.org/schema/p"
        xmlns:c="http://www.springframework.org/schema/c"
        xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
        https://www.springframework.org/schema/beans/spring-beans.xsd
        http://www.springframework.org/schema/aop
-       https://www.springframework.org/schema/aop/spring-aop.xsd">
+       https://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/context
+       https://www.springframework.org/schema/context/spring-context.xsd">
+    <!--
+    Spring Framework Documentation：
+        Overview
+        Core
+        Testing
+        DataAccess
+        Web Servlet
+        Web Reactive
+        Integration
+        Languages
+        Appendix
+        Wiki
+        下面的笔记来自于 Core 部分 
+     -->
+
+
+    <!-- ************************************************************************************************************* -->
+    <!-- *********************************************1.The IoC Container********************************************* -->
+    <!-- ************************************************************************************************************* -->
+
+
+    <!-- Spring IoC 容器和 Bean 简介     Introduction to the Spring IoC Container and Beans -->
+
+
+    <!-- 容器Container概述 
+            A.配置元数据 Configuration Metadata
+                Annotation-based configuration
+                Java-based configuration
+            B.初始化容器 Instantiating a Container
+            C.使用容器  Using the Container -->
 
     <!-- 这些 Bean 被定义为 BeanDefinition 对象 包含以下元数据：
         1.全限定类名 A package-qualified class name
@@ -18,504 +51,550 @@
     -->
 
     <!-- 这些metadata转换为bean definition属性：
-    Class,Name,Scope,Constructor arguments,Properties,Autowiring mode,Lazy initialization mode,Initialization method,Destruction method
-     -->
+    Class,Name,Scope,Constructor arguments,Properties,Autowiring mode,Lazy initialization mode,Initialization method,Destruction method -->
 
-    <!-- services -->
+    <!--It can be useful to have bean definitions span multiple XML files.Often, each individual XML configuration file
+    represents a logical layer or module in your architecture.
+    让 bean 定义跨越多个 XML 文件会很有用。通常，每个单独的 XML 配置文件代表体系结构中的一个逻辑层或模块。
+    <import resource="xxx.xml"/> -->
+
     <!-- id和name属性：id是唯一的，而name是别名，可以有多个，用逗号、分号、空格分隔开 
          当然，如果引用ref使用它们，id和name属性可以不提供，会有默认值，bean 名称以小写字母开头，并从那里开始采用驼峰式大小写。 -->
     <!-- 可以为name指定别名。子系统A和子系统B都使用myApp-dataSource，但是A和B都只识别subsystemA-dataSource和subsystemB-dataSource
         <alias name="myApp-dataSource" alias="subsystemA-dataSource"/>
         <alias name="myApp-dataSource" alias="subsystemB-dataSource"/>
     -->
-    <alias name="petStoreService" alias="toName"/>
+    <alias name="petStoreService" alias="pss"/>
 
-    <bean id="petStoreService" name="petStoreServiceName1 petStoreServiceName2" class="com.wang.service.impl.PetStoreServiceImpl">
+    <bean id="petStoreService" name="petStoreServiceName1 petStoreServiceName2"
+          class="com.wang.service.impl.PetStoreServiceImpl">
         <property name="petStoreDao" ref="petStoreDao"/>
         <!-- additional collaborators and configuration for this bean go here -->
     </bean>
 
+    <bean id="petService" class="com.wang.service.impl.PetServiceImpl"></bean>
 
-    <!-- 三种方法 Instantiating Beans
-    构造方法(Constructor)、静态方法(Static Factory Method)、实例方法(Instance Factory Method) -->
+
+    <!-- Bean概述  
+            A.Naming Beans
+            B.实例化Bean  Instantiating Beans 
+                B.1 Constructor
+                B.2 静态工厂方法
+                B.3 实例工厂方法
+                B.4 Determining a Bean’s Runtime Type -->
+    <!-- 三种方法实例化Bean  Instantiating Beans
+        构造方法(Constructor)
+        静态工厂方法(Static Factory Method)
+        实例工厂方法(Instance Factory Method) -->
     <!-- 构造方法 -->
     <bean id="byConstructor" class="com.wang.createbean.ByConstructor"></bean>
-    <!-- 静态工厂 -->
+
+    <!-- 静态工厂方法 -->
     <bean id="byStaticFactory" class="com.wang.createbean.ByStaticFactory" factory-method="createInstance"/>
-    <!-- 实例工厂 -->
+
+    <!-- 实例工厂方法   一个工厂类可以包含多个工厂方法-->
     <bean id="byInstanceFactory" class="com.wang.createbean.ByInstanceFactory"/>
-    <!-- the bean to be created via the factory bean -->
+    <!-- class属性要留空empty    the bean to be created via the factory bean -->
     <bean id="demoBeanInstance" factory-bean="byInstanceFactory" factory-method="createDemoBeanInstance"/>
+
+    <!-- In Spring documentation, "factory bean" refers to a bean that is configured in the Spring container and that creates
+    objects through an instance or static factory method. By contrast, FactoryBean (notice the capitalization) refers to
+    a Spring-specific FactoryBean implementation class. -->
+
 
     <!-- 依赖注入：Dependency injection (DI) is a process whereby objects define their dependencies (that is, the other 
     objects with which they work) only through constructor arguments, arguments to  a factory method, or properties that 
     are set on the object instance after it is constructed or returned from a factory method. 
-    
-    依赖注入存在两种主要的变体(major variants)：基于构造方法的依赖注入 Constructor-based
-                                                复杂类型：
-                                                    <beans>
-                                                        <bean id="beanOne" class="x.y.ThingOne">
-                                                            <constructor-arg ref="beanTwo"/>
-                                                            <constructor-arg ref="beanThree"/>
-                                                        </bean>
-                                                    
-                                                        <bean id="beanTwo" class="x.y.ThingTwo"/>
-                                                        <bean id="beanThree" class="x.y.ThingThree"/>
-                                                    </beans>
-                                                简单类型(无法进行自动匹配)： 
-                                                    a.通过类型 type：
-                                                        <bean id="exampleBean" class="examples.ExampleBean">
-                                                            <constructor-arg type="int" value="7500000"/>
-                                                            <constructor-arg type="java.lang.String" value="42"/>
-                                                        </bean>
-                                                    b.通过索引 index：除了解决多个简单值的歧义之外，指定索引还可以解决构造函数具有两个相同类型的参数时的歧义。
-                                                        注意：索引从0开始
-                                                        <bean id="exampleBean" class="examples.ExampleBean">
-                                                            <constructor-arg index="0" value="7500000"/>
-                                                            <constructor-arg index="1" value="42"/>
-                                                        </bean>
-                                                    c.构造参数名称 name：@ConstructorProperties({"years", "ultimateAnswer"})
-                                                        <bean id="exampleBean" class="examples.ExampleBean">
-                                                            <constructor-arg name="years" value="7500000"/>
-                                                            <constructor-arg name="ultimateAnswer" value="42"/>
-                                                        </bean>
-                                          基于setter的依赖注入 Setter-based 
-                                          public class SimpleMovieLister {
-                                                // the SimpleMovieLister has a dependency on the MovieFinder
-                                                private MovieFinder movieFinder;
-                                            
-                                                // a setter method so that the Spring container can inject a MovieFinder
-                                                public void setMovieFinder(MovieFinder movieFinder) {
-                                                    this.movieFinder = movieFinder;
-                                                }
-                                            
-                                                // business logic that actually uses the injected MovieFinder is omitted...
-                                          }
-                                          
-                                          使用 Constructor-based 还是 Setter-based？
-                                          对于强制依赖项，使用Constructor-based，对于可选依赖项，使用Setter-based。引用第三方类时，
-                                          Constructor-based 往往是必须的。
-                                          
-                                          
-                                          -->
-
-    <!-- 注入类型：Straight Values (Primitives, Strings, and so on) 
-                 References to Other Beans (Collaborators) -->
-
-    <!-- p 命名空间简化 
-    <bean id="myDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
-        results in a setDriverClassName(String) call
-        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
-        <property name="url" value="jdbc:mysql://localhost:3306/mydb"/>
-        <property name="username" value="root"/>
-        <property name="password" value="misterkaoli"/>
-    </bean>
-    
-    <bean id="myDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close"
-          p:driverClassName="com.mysql.jdbc.Driver"
-          p:url="jdbc:mysql://localhost:3306/mydb"
-          p:username="root"
-          p:password="misterkaoli"/> 
-    
-    <bean id="mappings"
-    class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
-
-    <bean id="mappings"
-    class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
-
-    typed as a java.util.Properties
-    <bean id="mappings" class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
-        <property name="properties">
-            <value>
-                jdbc.driver.className=com.mysql.jdbc.Driver
-                jdbc.url=jdbc:mysql://localhost:3306/mydb
-            </value>
-        </property>
-    </bean>
-    -->
-
-    <!-- idref 元素：
-        <bean id="theTargetBean" class="..."/>
-        <bean id="theClientBean" class="...">
-            <property name="targetName">
-                <idref bean="theTargetBean"/>
-            </property>
-        </bean>
-    相当于：
-        <bean id="theTargetBean" class="..." />
-        <bean id="client" class="...">
-            <property name="targetName" value="theTargetBean"/>
-        </bean> 
-    第一种是推荐写法，因为使用 idref 标记可以让容器在部署时验证所引用的命名 bean 是否确实存在。
-    如果Bean的生命周期是prototype，那么如果拼写错误，就会出现异常，而项目已经部署了  -->
-
-    <!-- The ref element is the final element inside a <constructor-arg/> or <property/> definition element. 
-    ref的属性：bean 和 parent
-    <ref bean="someBean"/>
-    
-    in the parent context
-    <bean id="accountService" class="com.something.SimpleAccountService">
-        insert dependencies as required here
-    </bean>
-    in the child (descendant) context
-    <bean id="accountService"
-        bean name is the same as the parent bean
-        class="org.springframework.aop.framework.ProxyFactoryBean">
-        <property name="target">
-            <ref parent="accountService"/> notice how we refer to the parent bean
-        </property>
-        insert other configuration and dependencies as required here
-    </bean> -->
-
-
-    <!-- 内部 Bean 
-    <bean id="outer" class="...">
-        instead of using a reference to a target bean, simply define the target bean inline 
-        <property name="target">
-            <bean class="com.example.Person"> this is the inner bean，内部Bean不需要定义id和name，即使指定了，容器也不为用它们作为
-                标识符；容器还会忽略scope属性
-                <property name="name" value="Fiona Apple"/>
-                <property name="age" value="25"/>
-            </bean>
-        </property>
-    </bean> -->
-
-    <!-- 集合 Collection
-    <bean id="moreComplexObject" class="example.ComplexObject">
-        results in a setAdminEmails(java.util.Properties) call
-        <property name="adminEmails">
-            <props>
-                <prop key="administrator">administrator@example.org</prop>
-                <prop key="support">support@example.org</prop>
-                <prop key="development">development@example.org</prop>
-            </props>
-        </property>
-        results in a setSomeList(java.util.List) call
-        <property name="someList">
-            <list>
-                <value>a list element followed by a reference</value>
-                <ref bean="myDataSource" />
-            </list>
-        </property>
-        results in a setSomeMap(java.util.Map) call
-        <property name="someMap">
-            <map>
-                <entry key="an entry" value="just some string"/>
-                <entry key="a ref" value-ref="myDataSource"/>
-            </map>
-        </property>
-        results in a setSomeSet(java.util.Set) call
-        <property name="someSet">
-            <set>
-                <value>just some string</value>
-                <ref bean="myDataSource" />
-            </set>
-        </property>
-    </bean>  -->
-
-    <!-- 集合合并：child的结果是父子合并的结果，并且child会覆盖parent同名的值。只能merge同类型的集合，且merge加在低级别、child中，加在parent无效
-    <beans>
-        <bean id="parent" abstract="true" class="example.ComplexObject">
-            <property name="adminEmails">
-                <props>
-                    <prop key="administrator">administrator@example.com</prop>
-                    <prop key="support">support@example.com</prop>
-                </props>
-            </property>
-        </bean>
-        <bean id="child" parent="parent">
-            <property name="adminEmails">
-                the merge is specified on the child collection definition
-                <props merge="true">
-                    <prop key="sales">sales@example.com</prop>
-                    <prop key="support">support@example.co.uk</prop>
-                </props>
-            </property>
-        </bean>
-    <beans> -->
-
-    <!-- 强类型转换 Strongly-typed collection 
-    得益于泛型generic types特性，Spring反射的时候可以识别泛型，转换成对应的值
-    public class SomeClass {
-        private Map<String, Float> accounts;
-        public void setAccounts(Map<String, Float> accounts) {
-            this.accounts = accounts;
-        }
-    }
-    <beans>
-        <bean id="something" class="x.y.SomeClass">
-            <property name="accounts">
-                <map>
-                    <entry key="one" value="9.99"/>
-                    <entry key="two" value="2.75"/>
-                    <entry key="six" value="3.99"/>
-                </map>
-            </property>
-        </bean>
-    </beans> -->
-
-    <!-- Null值和空字符串  Null and Empty String Values
-    <bean class="ExampleBean">
-        <property name="email" value=""/>
-    </bean>
-    相当于: exampleBean.setEmail("");
-    
-    <bean class="ExampleBean">
-        <property name="email">
-            <null/>
-        </property>
-    </bean>
-    相当于: exampleBean.setEmail(null); -->
-
-    <!-- 带有p命名空间的XML快捷方式 XML Shortcut with the p-namespace，可代替<property/>元素
-    添加：xmlns:p="http://www.springframework.org/schema/p"
-    p-namespace并未在XSD中定义，而是Spring的一部分
-    
-    <bean name="john-classic" class="com.example.Person">
-        <property name="name" value="John Doe"/>
-        <property name="spouse" ref="jane"/>
-    </bean>
-
-    <bean name="john-modern" class="com.example.Person"
-          p:name="John Doe"
-          p:spouse-ref="jane"/>
-
-    <bean name="jane" class="com.example.Person">
-        <property name="name" value="Jane Doe"/>
-    </bean> -->
-
-    <!-- 带有 c 命名空间的 XML 快捷方式 XML Shortcut with the c-namespace，可代替<constructor-arg/>元素
-    添加：xmlns:c="http://www.springframework.org/schema/c"
-    c-namespace并未在XSD中定义，而是Spring的一部分
-    
-    <bean id="beanTwo" class="x.y.ThingTwo"/>
-    <bean id="beanThree" class="x.y.ThingThree"/>
-
-    traditional declaration with optional argument names
-    <bean id="beanOne" class="x.y.ThingOne">
-        <constructor-arg name="thingTwo" ref="beanTwo"/>
-        <constructor-arg name="thingThree" ref="beanThree"/>
-        <constructor-arg name="email" value="something@somewhere.com"/>
-    </bean>
-
-    c-namespace declaration with argument names
-    <bean id="beanOne" class="x.y.ThingOne" c:thingTwo-ref="beanTwo"
-          c:thingThree-ref="beanThree" c:email="something@somewhere.com"/>
-          
-    特殊情况，不知道name的时候(例如如果字节码是在没有调试信息的情况下编译的)，可以使用索引：
-    c-namespace index declaration，需要是_开头，因为XML语法不允许数字开头
-    <bean id="beanOne" class="x.y.ThingOne" c:_0-ref="beanTwo" c:_1-ref="beanThree"
-          c:_2="something@somewhere.com"/>
-    -->
-
-    <!-- 复合属性名称 Compound Property Names 
-    <bean id="something" class="things.ThingOne">
-        <property name="fred.bob.sammy" value="123" />
-    </bean> -->
-
-    <!-- depends on 属性，例如当需要出发类中的静态初始化的时候，比如数据库初始化。
-    depends on可以有多个，用逗号、分号、空格隔开
-    depends on不仅可以控制开启顺序，还同时控制关闭顺序
-    <bean id="beanOne" class="ExampleBean" depends-on="manager,accountDao">
-        <property name="manager" ref="manager" />
-    </bean>
-
-    <bean id="manager" class="ManagerBean" />
-    <bean id="accountDao" class="x.y.jdbc.JdbcAccountDao" /> -->
-
-    <!-- 懒加载、延时加载 Lazy-initialized Beans 
-    <bean id="lazy" class="com.something.ExpensiveToCreateBean" lazy-init="true"/>
-    <bean name="not.lazy" class="com.something.AnotherBean"/>
-    
-    也可以在容器级别设置：
-    <beans default-lazy-init="true">
-        no beans will be pre-instantiated...
-    </beans>
-    -->
-
-    <!-- 自动装配 Autowiring Collaborators
-    Autowiring can significantly reduce the need to specify properties or constructor arguments. 
-    Autowiring can update a configuration as your objects evolve. 
-    在基于XML的配置文件中，可以在<bean/>元素中设置autowire属性完成自动装配
-    四种自动装配模式 Autowiring modes：
-        no(默认)、byName、byType、constructor
-        With byType or constructor autowiring mode, you can wire arrays and typed collections.
         
-    自动装配的局限性和缺点 Limitations and Disadvantages of Autowiring
-        在property and constructor-arg中配置的显示依赖始终会覆盖自动装配的结果；自动装配不适用于简单值，比如primitives、Strings、Classes、arrays
-        自动装配不如显示装配清晰，没有明确的记录
-        一些从spring容器中生成文档的工具可能无法利用装配信息
-        Multiple bean definitions within the container may match the type specified by the setter method or constructor argument to be autowired.
+        A.依赖注入存在两种主要的变体(major variants)：
+                A.1基于构造方法的依赖注入 Constructor-based
+                        复杂类型：
+                            <beans>
+                                <bean id="beanOne" class="x.y.ThingOne">
+                                    <constructor-arg ref="beanTwo"/>
+                                    <constructor-arg ref="beanThree"/>
+                                </bean>
+                            
+                                <bean id="beanTwo" class="x.y.ThingTwo"/>
+                                <bean id="beanThree" class="x.y.ThingThree"/>
+                            </beans>
+                        简单类型(无法进行自动匹配)： 
+                            a.通过类型 type：
+                                <bean id="exampleBean" class="examples.ExampleBean">
+                                    <constructor-arg type="int" value="7500000"/>
+                                    <constructor-arg type="java.lang.String" value="42"/>
+                                </bean>
+                            b.通过索引 index：除了解决多个简单值的歧义之外，指定索引还可以解决构造函数具有两个相同类型的参数时的歧义。
+                                注意：索引从0开始
+                                <bean id="exampleBean" class="examples.ExampleBean">
+                                    <constructor-arg index="0" value="7500000"/>
+                                    <constructor-arg index="1" value="42"/>
+                                </bean>
+                            c.构造参数名称 name：@ConstructorProperties({"years", "ultimateAnswer"})
+                                <bean id="exampleBean" class="examples.ExampleBean">
+                                    <constructor-arg name="years" value="7500000"/>
+                                    <constructor-arg name="ultimateAnswer" value="42"/>
+                                </bean>
+                A.2基于setter的依赖注入    Setter-based
+                    Setter-based DI is accomplished by the container calling setter methods on your beans after invoking 
+                    a no-argument constructor or a no-argument static factory method to instantiate your bean.
+                    在调用无参构造方法或一个无参静态工厂方法实例化bean之后，再调用setter方法完成属性注入
+                          public class SimpleMovieLister {
+                                // the SimpleMovieLister has a dependency on the MovieFinder
+                                private MovieFinder movieFinder;
+                            
+                                // a setter method so that the Spring container can inject a MovieFinder
+                                public void setMovieFinder(MovieFinder movieFinder) {
+                                    this.movieFinder = movieFinder;
+                                }
+                            
+                                // business logic that actually uses the injected MovieFinder is omitted...
+                          }
+                          
+                  使用 Constructor-based 还是 Setter-based？
+                  对于强制依赖项，使用Constructor-based，对于可选依赖项，使用Setter-based。引用第三方类时，
+                  Constructor-based 往往是必须的。
+              A.3依赖解析过程     Dependency Resolution Process
+                    The ApplicationContext is created and initialized with configuration metadata that describes all the beans.
+                    Configuration metadata can be specified by XML, Java code, or annotations.
+                    
+                    For each bean, its dependencies are expressed in the form of properties, constructor arguments, or arguments 
+                    to the static-factory method (if you use that instead of a normal constructor). These dependencies are provided 
+                    to the bean, when the bean is actually created.
+                    
+                    Each property or constructor argument is an actual definition of the value to set, or a reference to another 
+                    bean in the container.
+                    
+                    Each property or constructor argument that is a value is converted from its specified format to the actual 
+                    type of that property or constructor argument. By default, Spring can convert a value supplied in string 
+                    format to all built-in types, such as int, long, String, boolean, and so forth.
+              A.4依赖注入的示例    Examples of Dependency Injection
+    
+        B.依赖关系和配置详细信息 Dependencies and Configuration in Detail
+            B.1 注入类型：Straight Values (Primitives, Strings, and so on) 
+                p 命名空间简化 
+                <bean id="myDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+                    results in a setDriverClassName(String) call
+                    <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+                    <property name="url" value="jdbc:mysql://localhost:3306/mydb"/>
+                    <property name="username" value="root"/>
+                    <property name="password" value="misterkaoli"/>
+                </bean>
+                
+                <bean id="myDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close"
+                      p:driverClassName="com.mysql.jdbc.Driver"
+                      p:url="jdbc:mysql://localhost:3306/mydb"
+                      p:username="root"
+                      p:password="misterkaoli"/> 
+                
+                <bean id="mappings"
+                class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+            
+                <bean id="mappings"
+                class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+            
+                typed as a java.util.Properties
+                <bean id="mappings" class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+                    <property name="properties">
+                        <value>
+                            jdbc.driver.className=com.mysql.jdbc.Driver
+                            jdbc.url=jdbc:mysql://localhost:3306/mydb
+                        </value>
+                    </property>
+                </bean>
+            
+                idref 元素：
+                    <bean id="theTargetBean" class="..."/>
+                    <bean id="theClientBean" class="...">
+                        <property name="targetName">
+                            <idref bean="theTargetBean"/>
+                        </property>
+                    </bean>
+                相当于：
+                    <bean id="theTargetBean" class="..." />
+                    <bean id="client" class="...">
+                        <property name="targetName" value="theTargetBean"/>
+                    </bean> 
+                第一种是推荐写法，因为使用 idref 标记可以让容器在部署时验证所引用的命名 bean 是否确实存在。
+                如果Bean的生命周期是prototype，那么如果拼写错误，就会出现异常，而项目已经部署了
+            
+                The ref element is the final element inside a <constructor-arg/> or <property/> definition element. 
+                ref的属性：bean 和 parent
+                <ref bean="someBean"/>
+                
+                in the parent context
+                <bean id="accountService" class="com.something.SimpleAccountService">
+                    insert dependencies as required here
+                </bean>
+                in the child (descendant) context
+                <bean id="accountService"
+                    bean name is the same as the parent bean
+                    class="org.springframework.aop.framework.ProxyFactoryBean">
+                    <property name="target">
+                        <ref parent="accountService"/> notice how we refer to the parent bean
+                    </property>
+                    insert other configuration and dependencies as required here
+                </bean>
+            
+            B.2 引用其他Bean  References to Other Beans (Collaborators)
+                <ref/>
         
-    从自动装配中排除Bean Excluding a Bean from Autowiring(这并不是排除的bean不能使用自动装配，而是不能成为自动装配的候选者)
-        设置 autowire-candidate为false，这种只影响type-based类型的自动装配，name-based不受影响
-        通过bean名称模式匹配来限制自动装配的候选者，<beans/>的属性default-autowire-candidates，支持多个模式匹配，用逗号分割
-     -->
-
-    <!-- 方法注入 Method Injection 
-    查找方法替换Lookup Method Injection：查找方法注入是容器重写容器管理的 Bean 上的方法并返回容器中另一个命名 Bean 的查找结果的能力。
-            a stateful bean deployed as a prototype (non-singleton)
-                <bean id="myCommand" class="fiona.apple.AsyncCommand" scope="prototype">
-                    inject dependencies here as required
+            B.3 内部 Bean 
+                <bean id="outer" class="...">
+                    instead of using a reference to a target bean, simply define the target bean inline 
+                    <property name="target">
+                        <bean class="com.example.Person"> this is the inner bean，内部Bean不需要定义id和name，即使指定了，容器也不为用它们作为
+                            标识符；容器还会忽略scope属性
+                            <property name="name" value="Fiona Apple"/>
+                            <property name="age" value="25"/>
+                        </bean>
+                    </property>
                 </bean>
         
-            commandProcessor uses statefulCommandHelper
-            基于XML：
-                <bean id="commandManager" class="fiona.apple.CommandManager">
-                    <lookup-method name="createCommand" bean="myCommand"/>
-                </bean> 
-            基于注解：
-                public abstract class CommandManager {
-                    public Object process(Object commandState) {
-                        Command command = createCommand();
-                        command.setState(commandState);
-                        return command.execute();
+            B.4 集合 Collection
+                <bean id="moreComplexObject" class="example.ComplexObject">
+                    results in a setAdminEmails(java.util.Properties) call
+                    <property name="adminEmails">
+                        <props>
+                            <prop key="administrator">administrator@example.org</prop>
+                            <prop key="support">support@example.org</prop>
+                            <prop key="development">development@example.org</prop>
+                        </props>
+                    </property>
+                    results in a setSomeList(java.util.List) call
+                    <property name="someList">
+                        <list>
+                            <value>a list element followed by a reference</value>
+                            <ref bean="myDataSource" />
+                        </list>
+                    </property>
+                    results in a setSomeMap(java.util.Map) call
+                    <property name="someMap">
+                        <map>
+                            <entry key="an entry" value="just some string"/>
+                            <entry key="a ref" value-ref="myDataSource"/>
+                        </map>
+                    </property>
+                    results in a setSomeSet(java.util.Set) call
+                    <property name="someSet">
+                        <set>
+                            <value>just some string</value>
+                            <ref bean="myDataSource" />
+                        </set>
+                    </property>
+                </bean>
+            
+                集合合并：child的结果是父子合并的结果，并且child会覆盖parent同名的值。只能merge同类型的集合，且merge加在低级别、child中，加在parent无效
+                <beans>
+                    <bean id="parent" abstract="true" class="example.ComplexObject">
+                        <property name="adminEmails">
+                            <props>
+                                <prop key="administrator">administrator@example.com</prop>
+                                <prop key="support">support@example.com</prop>
+                            </props>
+                        </property>
+                    </bean>
+                    <bean id="child" parent="parent">
+                        <property name="adminEmails">
+                            the merge is specified on the child collection definition
+                            <props merge="true">
+                                <prop key="sales">sales@example.com</prop>
+                                <prop key="support">support@example.co.uk</prop>
+                            </props>
+                        </property>
+                    </bean>
+                <beans>
+            
+                强类型转换 Strongly-typed collection 
+                得益于泛型generic types特性，Spring反射的时候可以识别泛型，转换成对应的值
+                public class SomeClass {
+                    private Map<String, Float> accounts;
+                    public void setAccounts(Map<String, Float> accounts) {
+                        this.accounts = accounts;
                     }
+                }
+                <beans>
+                    <bean id="something" class="x.y.SomeClass">
+                        <property name="accounts">
+                            <map>
+                                <entry key="one" value="9.99"/>
+                                <entry key="two" value="2.75"/>
+                                <entry key="six" value="3.99"/>
+                            </map>
+                        </property>
+                    </bean>
+                </beans>
+        
+            B.5 Null值和空字符串  Null and Empty String Values
+                <bean class="ExampleBean">
+                    <property name="email" value=""/>
+                </bean>
+                相当于: exampleBean.setEmail("");
                 
-                    @Lookup("myCommand")
-                    protected abstract Command createCommand();
-                } 
-    任意方法替换Arbitrary Method Replacement(基本不用)：
-            <bean id="myValueCalculator" class="x.y.z.MyValueCalculator">
-                arbitrary method replacement
-                <replaced-method name="computeValue" replacer="replacementComputeValue">
-                    <arg-type>String</arg-type>
-                </replaced-method>
+                <bean class="ExampleBean">
+                    <property name="email">
+                        <null/>
+                    </property>
+                </bean>
+                相当于: exampleBean.setEmail(null);
+        
+            B.6 带有p命名空间的XML快捷方式 XML Shortcut with the p-namespace，可代替<property/>元素
+                添加：xmlns:p="http://www.springframework.org/schema/p"
+                p-namespace并未在XSD中定义，而是Spring的一部分
+                
+                <bean name="john-classic" class="com.example.Person">
+                    <property name="name" value="John Doe"/>
+                    <property name="spouse" ref="jane"/>
+                </bean>
+            
+                <bean name="john-modern" class="com.example.Person"
+                      p:name="John Doe"
+                      p:spouse-ref="jane"/>
+            
+                <bean name="jane" class="com.example.Person">
+                    <property name="name" value="Jane Doe"/>
+                </bean>
+            
+            B.7 带有 c 命名空间的 XML 快捷方式 XML Shortcut with the c-namespace，可代替<constructor-arg/>元素
+                添加：xmlns:c="http://www.springframework.org/schema/c"
+                c-namespace并未在XSD中定义，而是Spring的一部分
+                
+                <bean id="beanTwo" class="x.y.ThingTwo"/>
+                <bean id="beanThree" class="x.y.ThingThree"/>
+            
+                traditional declaration with optional argument names
+                <bean id="beanOne" class="x.y.ThingOne">
+                    <constructor-arg name="thingTwo" ref="beanTwo"/>
+                    <constructor-arg name="thingThree" ref="beanThree"/>
+                    <constructor-arg name="email" value="something@somewhere.com"/>
+                </bean>
+            
+                c-namespace declaration with argument names
+                <bean id="beanOne" class="x.y.ThingOne" c:thingTwo-ref="beanTwo"
+                      c:thingThree-ref="beanThree" c:email="something@somewhere.com"/>
+                      
+                特殊情况，不知道name的时候(例如如果字节码是在没有调试信息的情况下编译的)，可以使用索引：
+                c-namespace index declaration，需要是_开头，因为XML语法不允许数字开头
+                <bean id="beanOne" class="x.y.ThingOne" c:_0-ref="beanTwo" c:_1-ref="beanThree"
+                      c:_2="something@somewhere.com"/>
+                
+            B.8 复合属性名称 Compound Property Names 
+            <bean id="something" class="things.ThingOne">
+                <property name="fred.bob.sammy" value="123" />
             </bean>
 
-            <bean id="replacementComputeValue" class="a.b.c.ReplacementComputeValue"/> -->
+
+        C.depends on 属性，例如当需要出发类中的静态初始化的时候，比如数据库初始化。
+            depends on可以有多个，用逗号、分号、空格隔开
+            depends on不仅可以控制开启顺序，还同时控制关闭顺序
+            <bean id="beanOne" class="ExampleBean" depends-on="manager,accountDao">
+                <property name="manager" ref="manager" />
+            </bean>
+        
+            <bean id="manager" class="ManagerBean" />
+            <bean id="accountDao" class="x.y.jdbc.JdbcAccountDao" />
+    
+        D.懒加载、延时加载 Lazy-initialized Beans 
+            <bean id="lazy" class="com.something.ExpensiveToCreateBean" lazy-init="true"/>
+            <bean name="not.lazy" class="com.something.AnotherBean"/>
+            
+            也可以在容器级别设置：
+            <beans default-lazy-init="true">
+                no beans will be pre-instantiated...
+            </beans>
+        
+    
+        E.自动装配 Autowiring Collaborators
+            Autowiring can significantly reduce the need to specify properties or constructor arguments. 
+            Autowiring can update a configuration as your objects evolve. 
+            在基于XML的配置文件中，可以在<bean/>元素中设置autowire属性完成自动装配
+            四种自动装配模式 Autowiring modes：
+                no(默认)、byName、byType、constructor
+                With byType or constructor autowiring mode, you can wire arrays and typed collections.
+                
+            自动装配的局限性和缺点 Limitations and Disadvantages of Autowiring
+                在property and constructor-arg中配置的显示依赖始终会覆盖自动装配的结果；自动装配不适用于简单值，比如primitives、Strings、Classes、arrays
+                自动装配不如显示装配清晰，没有明确的记录
+                一些从spring容器中生成文档的工具可能无法利用装配信息
+                Multiple bean definitions within the container may match the type specified by the setter method or constructor argument to be autowired.
+                
+            从自动装配中排除Bean Excluding a Bean from Autowiring(这并不是排除的bean不能使用自动装配，而是不能成为自动装配的候选者)
+                设置 autowire-candidate为false，这种只影响type-based类型的自动装配，name-based不受影响
+                通过bean名称模式匹配来限制自动装配的候选者，<beans/>的属性default-autowire-candidates，支持多个模式匹配，用逗号分割
+         
+    
+        F.方法注入 Method Injection 
+            查找方法替换Lookup Method Injection：查找方法注入是容器重写容器管理的 Bean 上的方法并返回容器中另一个命名 Bean 的查找结果的能力。
+                    a stateful bean deployed as a prototype (non-singleton)
+                        <bean id="myCommand" class="fiona.apple.AsyncCommand" scope="prototype">
+                            inject dependencies here as required
+                        </bean>
+                
+                    commandProcessor uses statefulCommandHelper
+                    基于XML：
+                        <bean id="commandManager" class="fiona.apple.CommandManager">
+                            <lookup-method name="createCommand" bean="myCommand"/>
+                        </bean> 
+                    基于注解：
+                        public abstract class CommandManager {
+                            public Object process(Object commandState) {
+                                Command command = createCommand();
+                                command.setState(commandState);
+                                return command.execute();
+                            }
+                        
+                            @Lookup("myCommand")
+                            protected abstract Command createCommand();
+                        } 
+            任意方法替换Arbitrary Method Replacement(基本不用)：
+                    <bean id="myValueCalculator" class="x.y.z.MyValueCalculator">
+                        arbitrary method replacement
+                        <replaced-method name="computeValue" replacer="replacementComputeValue">
+                            <arg-type>String</arg-type>
+                        </replaced-method>
+                    </bean>
+        
+                    <bean id="replacementComputeValue" class="a.b.c.ReplacementComputeValue"/> -->
+
 
     <!-- Bean的作用域 Bean Scopes
-    spring支持6中作用域，其中4种是web-aware ApplicationContext
-    
-    Singleton Scope(默认)：
-        <bean id="accountService" class="com.something.DefaultAccountService"/>
-        the following is equivalent, though redundant (singleton scope is the default)
-        <bean id="accountService" class="com.something.DefaultAccountService" scope="singleton"/>
-    
-    Prototype Scope：
-        这种模式下，spring不管理bean的声明周期，但是都会调用初始化生命周期回调方法，不会调用销毁方法
-        <bean id="accountService" class="com.something.DefaultAccountService" scope="prototype"/> 
-    
-    单例Bean依赖非单例Bean： 
-        Singleton Beans with Prototype-bean Dependencies，这种情况下可以用Method Injection，因为单例bean只初始化1次，它所依赖的prototype bean只被初始化一次
+        A.单例作用域
+        B.原型作用域
+        C.单例Bean依赖非单例Bean
+        D.Web环境下的作用域
+        E.自定义作用域
         
-     Web环境下(例如XmlWebApplicationContext)的作用域：Request, Session, Application, and WebSocket Scopes：
-        这种环境下，需要Initial Web Configuration，作用域才有效，而如何初始化，又取决于Servlet环境
-        如果是使用的Spring Web MVC，DispatcherServlet处理的请求已经暴露了所有的状态。
-        如果使用的是Servlet 2.5 web container，当用JSF、Structs时，需要注册org.springframework.web.context.request.RequestContextListener ServletRequestListener.
-        如果是Servlet 3.0+，可以通过WebApplicationInitializer接口来以编程的方式来做
-        在web.xml中注册：
-            <web-app>
-                ...
-                <listener>
-                    <listener-class>
-                        org.springframework.web.context.request.RequestContextListener
-                    </listener-class>
-                </listener>
-                ...
-            </web-app>
-        如果设置监听器listener有问题，则设置过滤器filter：
-            <web-app>
-                ...
-                <filter>
-                    <filter-name>requestContextFilter</filter-name>
-                    <filter-class>org.springframework.web.filter.RequestContextFilter</filter-class>
-                </filter>
-                <filter-mapping>
-                    <filter-name>requestContextFilter</filter-name>
-                    <url-pattern>/*</url-pattern>
-                </filter-mapping>
-                ...
-            </web-app>
-     DispatcherServlet, RequestContextListener, and RequestContextFilter做的是同样的事情，都是将HTTP请求绑定到处理请求的线程，这样可以让后面的调用链都可以使用
-     
-     配置以下作用域：
-        Request scope：
-             <bean id="loginAction" class="com.something.LoginAction" scope="request"/>
-             Spring为每个HTTP请求都创建一个Bean loginAction，当请求处理完毕时，这个Bean就会被丢弃
-             当时用annotation-driven components 或 Java configuration时，可以使用@RequestScope注解 
-                @RequestScope
-                @Component
-                public class LoginAction {
-                    // ...
-                }
-        Session Scope：
-            <bean id="userPreferences" class="com.something.UserPreferences" scope="session"/>
-            或者：
-            @SessionScope
-            @Component
-            public class UserPreferences {
-                // ...
-            }
-        Application Scope：
-            <bean id="appPreferences" class="com.something.AppPreferences" scope="application"/>
-            类似于Spring的singleton bean，但是有区别，它对应ServletContext，而singleton bean对应ApplicationContext
-            或者：
-            @ApplicationScope
-            @Component
-            public class AppPreferences {
-                // ...
-            }
-        WebSocket Scope：WebSocket session
+        spring支持6中作用域，其中4种是web-aware ApplicationContext
         
-        作用域Bean作为依赖Scoped Beans as Dependencies：通过注入AOP代理注册一个代理对象来替代scoped bean
-        正确且完整的：
-        xmlns:aop="http://www.springframework.org/schema/aop"
-        xsi:schemaLocation：
-                    http://www.springframework.org/schema/aop
-                    https://www.springframework.org/schema/aop/spring-aop.xsd
-        <bean id="userPreferences" class="com.something.UserPreferences" scope="session">   短声明周期对象
-            <aop:scoped-proxy/>
-        </bean>
-        <bean id="userManager" class="com.something.UserManager">    长生命周期对象
-            <property name="userPreferences" ref="userPreferences"/>
-        </bean> -->
+        A.Singleton Scope(默认)：
+                <bean id="accountService" class="com.something.DefaultAccountService"/>
+                the following is equivalent, though redundant (singleton scope is the default)
+                <bean id="accountService" class="com.something.DefaultAccountService" scope="singleton"/>
+        
+        B.Prototype Scope：
+                这种模式下，spring不管理bean的声明周期，但是都会调用初始化生命周期回调方法，不会调用销毁方法
+                <bean id="accountService" class="com.something.DefaultAccountService" scope="prototype"/> 
+        
+        C.单例Bean依赖非单例Bean： 
+                Singleton Beans with Prototype-bean Dependencies，这种情况下可以用Method Injection，因为单例bean只初始化1次，它所依赖的prototype bean只被初始化一次
+            
+        D.Web环境下(例如XmlWebApplicationContext)的作用域：Request, Session, Application, and WebSocket Scopes：
+                这种环境下，需要Initial Web Configuration，作用域才有效，而如何初始化，又取决于Servlet环境
+                如果是使用的Spring Web MVC，DispatcherServlet处理的请求已经暴露了所有的状态。
+                如果使用的是Servlet 2.5 web container，当用JSF、Structs时，需要注册org.springframework.web.context.request.RequestContextListener ServletRequestListener.
+                如果是Servlet 3.0+，可以通过WebApplicationInitializer接口来以编程的方式来做
+                在web.xml中注册：
+                    <web-app>
+                        ...
+                        <listener>
+                            <listener-class>
+                                org.springframework.web.context.request.RequestContextListener
+                            </listener-class>
+                        </listener>
+                        ...
+                    </web-app>
+                如果设置监听器listener有问题，则设置过滤器filter：
+                    <web-app>
+                        ...
+                        <filter>
+                            <filter-name>requestContextFilter</filter-name>
+                            <filter-class>org.springframework.web.filter.RequestContextFilter</filter-class>
+                        </filter>
+                        <filter-mapping>
+                            <filter-name>requestContextFilter</filter-name>
+                            <url-pattern>/*</url-pattern>
+                        </filter-mapping>
+                        ...
+                    </web-app>
+                DispatcherServlet, RequestContextListener, and RequestContextFilter做的是同样的事情，都是将HTTP请求绑定到处理请求的线程，这样可以让后面的调用链都可以使用
+             
+                配置以下作用域：
+                    Request scope：
+                         <bean id="loginAction" class="com.something.LoginAction" scope="request"/>
+                         Spring为每个HTTP请求都创建一个Bean loginAction，当请求处理完毕时，这个Bean就会被丢弃
+                         当时用annotation-driven components 或 Java configuration时，可以使用@RequestScope注解 
+                            @RequestScope
+                            @Component
+                            public class LoginAction {
+                                // ...
+                            }
+                    Session Scope：
+                        <bean id="userPreferences" class="com.something.UserPreferences" scope="session"/>
+                        或者：
+                        @SessionScope
+                        @Component
+                        public class UserPreferences {
+                            // ...
+                        }
+                    Application Scope：
+                        <bean id="appPreferences" class="com.something.AppPreferences" scope="application"/>
+                        类似于Spring的singleton bean，但是有区别，它对应ServletContext，而singleton bean对应ApplicationContext
+                        或者：
+                        @ApplicationScope
+                        @Component
+                        public class AppPreferences {
+                            // ...
+                        }
+                    WebSocket Scope：WebSocket session
+                
+                    作用域Bean作为依赖Scoped Beans as Dependencies：通过注入AOP代理注册一个代理对象来替代scoped bean
+                    正确且完整的：
+                    xmlns:aop="http://www.springframework.org/schema/aop"
+                    xsi:schemaLocation：
+                                http://www.springframework.org/schema/aop
+                                https://www.springframework.org/schema/aop/spring-aop.xsd
+                    <bean id="userPreferences" class="com.something.UserPreferences" scope="session">   短声明周期对象
+                        <aop:scoped-proxy/>
+                    </bean>
+                    <bean id="userManager" class="com.something.UserManager">    长生命周期对象
+                        <property name="userPreferences" ref="userPreferences"/>
+                    </bean>
+            
+                代理对象的选择
+                默认请款下：CGLIB-based class proxy
+                可以更改使用其他代理  JDK interface-based proxies ：
+                    DefaultUserPreferences implements the UserPreferences interface
+                    <bean id="userPreferences" class="com.stuff.DefaultUserPreferences" scope="session">
+                        <aop:scoped-proxy proxy-target-class="false"/>
+                    </bean>
+                
+                    <bean id="userManager" class="com.stuff.UserManager">
+                        <property name="userPreferences" ref="userPreferences"/>
+                    </bean>
+    
+        E.自定义作用域 Custom Scopes
+                可以自定义作用域或者重新定义现有的作用域，但是不能覆盖singleton and prototype作用域
+                自定义作用域：
+                    编程方式：
+                        a.创建：
+                            实现org.springframework.beans.factory.config.Scope接口
+                            The Scope interface has four methods to get objects from the scope、remove them from the scope、and let them be destroyed.
+                        b.使用：
+                            注册：ConfigurableBeanFactory#void registerScope(String scopeName, Scope scope);
+                            例如：Scope threadScope = new SimpleThreadScope();
+                                 beanFactory.registerScope("thread", threadScope);
+                                 
+                                 <bean id="..." class="..." scope="thread">
+                    声明方式：
+                        <bean class="org.springframework.beans.factory.config.CustomScopeConfigurer">
+                            <property name="scopes">
+                                <map>
+                                    <entry key="thread">
+                                        <bean class="org.springframework.context.support.SimpleThreadScope"/>
+                                    </entry>
+                                </map>
+                            </property>
+                        </bean>
+                    
+                        <bean id="thing2" class="x.y.Thing2" scope="thread">
+                            <property name="name" value="Rick"/>
+                            <aop:scoped-proxy/>
+                        </bean>
+                    
+                        <bean id="thing1" class="x.y.Thing1">
+                            <property name="thing2" ref="thing2"/>
+                        </bean> -->
 
-    <!-- 代理对象的选择
-    默认请款下：CGLIB-based class proxy
-    可以更改使用其他代理  JDK interface-based proxies ：
-        DefaultUserPreferences implements the UserPreferences interface
-        <bean id="userPreferences" class="com.stuff.DefaultUserPreferences" scope="session">
-            <aop:scoped-proxy proxy-target-class="false"/>
-        </bean>
-    
-        <bean id="userManager" class="com.stuff.UserManager">
-            <property name="userPreferences" ref="userPreferences"/>
-        </bean> -->
-
-    <!-- 自定义作用域 Custom Scopes
-    可以自定义作用域或者重新定义现有的作用域，但是不能覆盖singleton and prototype作用域
-    自定义作用域：
-        编程方式：
-            a.创建：
-                实现org.springframework.beans.factory.config.Scope接口
-                The Scope interface has four methods to get objects from the scope、remove them from the scope、and let them be destroyed.
-            b.使用：
-                注册：ConfigurableBeanFactory#void registerScope(String scopeName, Scope scope);
-                例如：Scope threadScope = new SimpleThreadScope();
-                     beanFactory.registerScope("thread", threadScope);
-                     
-                     <bean id="..." class="..." scope="thread">
-        声明方式：
-            <bean class="org.springframework.beans.factory.config.CustomScopeConfigurer">
-                <property name="scopes">
-                    <map>
-                        <entry key="thread">
-                            <bean class="org.springframework.context.support.SimpleThreadScope"/>
-                        </entry>
-                    </map>
-                </property>
-            </bean>
-        
-            <bean id="thing2" class="x.y.Thing2" scope="thread">
-                <property name="name" value="Rick"/>
-                <aop:scoped-proxy/>
-            </bean>
-        
-            <bean id="thing1" class="x.y.Thing1">
-                <property name="thing2" ref="thing2"/>
-            </bean> -->
 
     <!-- 自定义Bean特性 Customizing the Nature of a Bean 
         a. Lifecycle Callbacks 生命周期回调
@@ -664,7 +743,7 @@
             使用Aware相关的接口会将代码与Spring API联系起来，并且不遵循控制反转风格 -->
 
 
-    <!-- Bean定义继承Bean Definition Inheritance 
+    <!-- Bean定义继承   Bean Definition Inheritance 
             <bean id="inheritedTestBean" abstract="true" class="org.springframework.beans.TestBean">
                 <property name="name" value="parent"/>
                 <property name="age" value="1"/>
@@ -686,6 +765,1225 @@
                 age will inherit the value of 1 from the parent bean definition
             </bean> -->
 
+
     <!-- 容器扩展点 Container Extension Points 
+         A.使用org.springframework.beans.factory.config.BeanPostProcessor自定义Bean   Customizing Beans by Using a BeanPostProcessor
+                可以配置多个该接口的实现类，如果想控制顺序，可以实现Ordered接口；
+                BeanPostProcessor的作用域为每个容器(scoped per-container)，仅当使用容器层次结构时这才相关；即使两个容器属于同一层次结构，也是各自管理各自的
+                它会处理该容器创建的所有Bean
+                为了更改bean的definition，则需要用BeanFactoryPostProcessor
+                执行顺序：BeanPostProcessor -> InitializingBean -> init
+                Some Spring AOP infrastructure classes are implemented as bean post-processors in order to provide proxy-wrapping logic.
+                虽然推荐以注册的方式、通过Application自动检测；也可以编程方式注册，使用ConfigurableBeanFactory#addBeanPostProcessor
+                因为AOP自动代理是作为BeanPostProcessor本身实现的，因此不能代理BeanPostProcessor实例及其他们直接引用的bean
+                BeanPostProcessor的一个例子是：AutowiredAnnotationBeanPostProcessor
+         B.使用org.springframework.beans.factory.config.BeanFactoryPostProcessor自定义配置元数据  Customizing Configuration Metadata with a BeanFactoryPostProcessor
+                与BeanPostProcessor区别是：BeanFactoryPostProcessor作用于元数据，还没初始化的时候
+                Spring包含许多预定义的bean工厂后处理器：PropertyOverrideConfigurer、PropertySourcesPlaceholderConfigurer等
+                例子：
+                    <bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+                        <property name="locations" value="classpath:com/something/jdbc.properties"/>
+                    </bean>
+                    
+                    <bean id="dataSource" destroy-method="close"
+                            class="org.apache.commons.dbcp.BasicDataSource">
+                        <property name="driverClassName" value="${jdbc.driverClassName}"/>
+                        <property name="url" value="${jdbc.url}"/>
+                        <property name="username" value="${jdbc.username}"/>
+                        <property name="password" value="${jdbc.password}"/>
+                    </bean>
+                    注意：随着 Spring 2.5 中引入的上下文命名空间(注意引入context)，也可以使用<context:property-placeholder/>：
+                        <context:property-placeholder location="classpath:com/something/jdbc.properties"/>
+                另一个例子：
+                    PropertyOverrideConfigurer：
+                    随着Spring 2.5中引入的上下文命名空间，可以使用：
+                    <context:property-override location="classpath:override.properties"/>
+         C.使用org.springframework.beans.factory.FactoryBean自定义初始化逻辑 Customizing Instantiation Logic with a FactoryBean
+                获取的时候需要用 & ：getBean("&myBean") -->
+
+
+    <context:annotation-config/>
+    <!-- 基于注解的容器配置  Annotation-based Container Configuration
+        依赖于字节码元数据 relies on the bytecode metadata for wiring up components
+        例如 AutowiredAnnotationBeanPostProcessor，作为一个BeanPostProcessor，是一个处理自动装配注解的BeanPostProcessor。
+        将BeanPostProcessor与注解结合使用是扩展IoC容器的常用方法。
+        
+        XML配置在注解配置之后，	Annotation injection is performed before XML injection，因此XML会覆盖注解配置。
+        
+        像以前一样，可以将BeanPostProcessor注册为单独的Bean Definitions，也可以通过在基于XML的配置中隐式注册他们，但是注意要引入context命名空间
+        <context:annotation-config/>，该元素隐式地注册了下面5个Processor：
+        ConfigurationClassPostProcessor
+        AutowiredAnnotationBeanPostProcessor
+        CommonAnnotationBeanPostProcessor
+        PersistenceAnnotationBeanPostProcessor
+        EventListenerMethodProcessor
+        
+        注意<context:annotation-config/>仅在定义它的同一应用程序上下文中查找beans上的注释,仅能够在已经在容器中注册过的beans上面起作用。
+        假如我们要使用如@Component、@Controller、@Service等这些注解，使用它是无效的
+        
+        A.@Required
+        B.使用@Autowired
+        C.@Primary
+        D.Qualifiers限定符 Fine-tuning Annotation-based Autowiring with Qualifiers
+        E.使用泛型作为Qualifiers  Using Generics as Autowiring Qualifiers
+        F.自定义自动装配Using CustomAutowireConfigurer
+        G.使用@Resource注入  Injection with @Resource
+        H.使用@Value
+        I.使用@PostConstruct and @PreDestroy
+        
+        A.@Required
+            该注解作用在方法method上，setter methods
+            @Required注解和RequiredAnnotationBeanPostProcessor在Spring Framework 5.1开始弃用deprecated 了
+        
+        B.使用@Autowired
+            JSR 330的@Inject注解可以替代@Autowired注解
+            作用在：构造方法、任意名称的方法(包括setter方法)、参数、字段fields、注解，并且可以混用它们
+            注意：用在方法和字段上时，必须是非静态的
+            默认按照类型type注入
+            还可以自动注入数组或集合：@Autowired
+                                private MovieCatalog[] movieCatalogs;
+                                
+                                private Set<MovieCatalog> movieCatalogs;
+                                @Autowired
+                                public void setMovieCatalogs(Set<MovieCatalog> movieCatalogs) {
+                                    this.movieCatalogs = movieCatalogs;
+                                }
+            Bean还可以实现org.springframework.core.Ordered接口、 @Order或@Priority注解
+            @Order可以在目标类或@Bean方法上声明，注意：该注解影响的是注入点的优先级，不会影响单例bean的启动顺序(singleton startup order)，这是由依赖关系和@DependsOn声明确定的
+            注意javax.annotation.Priority注解不能用在@Bean方法上，因为该注解不能用在方法是上；可以通过@Order结合@Primary来实现相同的功能
+            
+            Map类型也可以自动注入： private Map<String, MovieCatalog> movieCatalogs;
+                                @Autowired
+                                public void setMovieCatalogs(Map<String, MovieCatalog> movieCatalogs) {
+                                    this.movieCatalogs = movieCatalogs;
+                                }
+            注意：对于数组、集合、Map，需要至少一个Bean与之匹配，否则会失败。
+                By default, autowiring fails when no matching candidate beans are available for a given injection point. 
+                In the case of a declared array, collection, or map, at least one matching element is expected.
+            @Autowired默认是必须要注入的，找不到会报错，可以设置属性@Autowired(required = false)跳过注入点。
+                对于字段：会使用默认值
+                对于方法：根本不会调用(多个参数时，只要有一个找不到，就不会调用)
+                对于构造方法和工厂方法参数，由于Spring的构造解析算法可能会处理多个构造函数，required属性具有一些不同含义。
+                任何给定bean类只有一个构造函数可以声明@Autowired并将required属性设置为true。因此，如果required属性保留其默认值true，
+                则只能使用@Autowired注解单个构造函数。类似于XML中的autowire=constructor。推荐使用required属性，而不使用过时的@Required
+                可以使用java.util.Optional来表达特定依赖项的非必需性质：@Autowired
+                                                                public void setMovieFinder(Optional<MovieFinder> movieFinder) {
+                                                                    ...
+                                                                }
+                从Spring Framework 5.0开始，可以使用@Nullable： @Autowired
+                                                            public void setMovieFinder(@Nullable MovieFinder movieFinder) {
+                                                                ...
+                                                                }
+            @Autowired可以使用在可解析的接口上： @Autowired
+                                            private ApplicationContext context;
+                 例如：BeanFactory, ApplicationContext, Environment, ResourceLoader, ApplicationEventPublisher, and MessageSource
+                 这些接口及其扩展接口（例如 ConfigurableApplicationContext 或 ResourcePatternResolver）会自动解析，无需特殊设置。
+                 
+            @Autowired, @Inject, @Value, and @Resource等注解都是由BeanPostProcessor来实现的，
+            这意味着您无法在自己的BeanPostProcessor或BeanFactoryPostProcessor类型（如果有）中应用这些注释,
+            这些类型必须使用XML或Spring @Bean方法显式 "连接wired up"。
+            
+        C.@Primary
+            @Configuration
+            public class MovieConfiguration {
+                @Bean
+                @Primary
+                public MovieCatalog firstMovieCatalog() { ... }
+                @Bean
+                public MovieCatalog secondMovieCatalog() { ... }
+                // ...
+            }
+           public class MovieRecommender {
+                @Autowired  // 将会注入firstMovieCatalog
+                private MovieCatalog movieCatalog;
+                // ...
+            }
+            相应的Bean定义：
+            <context:annotation-config/>
+            <bean class="example.SimpleMovieCatalog" primary="true">
+                inject any dependencies required by this bean
+            </bean>
+            <bean class="example.SimpleMovieCatalog">
+                inject any dependencies required by this bean
+            </bean>
+            <bean id="movieRecommender" class="example.MovieRecommender"/>
+                    
+        D.Qualifiers限定符 Fine-tuning Annotation-based Autowiring with Qualifiers
+            qualifier可以缩小匹配范围，实现更加灵活精确的控制            
+            使用：ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER, ElementType.TYPE, ElementType.ANNOTATION_TYPE
+                @Autowired
+                @Qualifier("main")  // 字段
+                private MovieCatalog movieCatalog;
+                
+                @Autowired
+                public void prepare(@Qualifier("main") MovieCatalog movieCatalog,   // 参数
+                        CustomerPreferenceDao customerPreferenceDao) {
+                    this.movieCatalog = movieCatalog;
+                    this.customerPreferenceDao = customerPreferenceDao;
+                }
+                相应的Bean定义：
+                <context:annotation-config/>
+                <bean class="example.SimpleMovieCatalog">
+                    <qualifier value="main"/> 
+                    inject any dependencies required by this bean
+                </bean>
+                <bean class="example.SimpleMovieCatalog">
+                <qualifier value="action"/>
+                    inject any dependencies required by this bean
+                </bean>
+                <bean id="movieRecommender" class="example.MovieRecommender"/>
+            Qualifiers还适用于集合类型；
+            @Autowired适用于字段、方法、参数、构造方法，而@Resource只能用于字段和单参数setter方法
+            自定义qualifier注解：@Target({ElementType.FIELD, ElementType.PARAMETER})
+                              @Retention(RetentionPolicy.RUNTIME)
+                              @Qualifier
+                              public @interface Genre {
+                                  String value();   // 可以有0、1或n个属性
+                              }
+                              
+                              public class MovieRecommender {
+                                @Autowired
+                                @Genre("Action")
+                                private MovieCatalog actionCatalog;
+                            
+                                private MovieCatalog comedyCatalog;
+                            
+                                @Autowired
+                                public void setComedyCatalog(@Genre("Comedy") MovieCatalog comedyCatalog) {
+                                    this.comedyCatalog = comedyCatalog;
+                                }
+                                // ...
+                            }
+                            
+                            <context:annotation-config/>
+                            <bean class="example.SimpleMovieCatalog">
+                                <qualifier type="Genre" value="Action"/>
+                                inject any dependencies required by this bean
+                            </bean>
+                            <bean class="example.SimpleMovieCatalog">
+                                <qualifier type="example.Genre" value="Comedy"/>
+                                inject any dependencies required by this bean
+                            </bean>
+                            <bean id="movieRecommender" class="example.MovieRecommender"/>
+            
+        E.使用泛型作为Qualifiers  Using Generics as Autowiring Qualifiers
+            例如：@Configuration
+                public class MyConfiguration {
+                    @Bean
+                    public StringStore stringStore() {  // class StringStore implements Store<String>
+                        return new StringStore();
+                    }
+                    @Bean
+                    public IntegerStore integerStore() {  // class StringStore implements Store<Integer>
+                        return new IntegerStore();
+                    }
+                }
+                
+                @Autowired
+                private Store<String> s1; // <String> qualifier, injects the stringStore bean
+                @Autowired
+                private Store<Integer> s2; // <Integer> qualifier, injects the integerStore bean
+                List、Set、Map、数组都可以：
+                @Autowired
+                private List<Store<Integer>> s;
+        
+        F.自定义自动装配Using CustomAutowireConfigurer
+            org.springframework.beans.factory.annotation.CustomAutowireConfigurer是一个BeanFactoryPostProcessor
+            <bean id="customAutowireConfigurer" class="org.springframework.beans.factory.annotation.CustomAutowireConfigurer">
+                <property name="customQualifierTypes">
+                    <set>
+                        <value>example.CustomQualifier</value>  // 即使CustomQualifier没有加@Qualifier也可以注册
+                    </set>
+                </property>
+            </bean>
+            AutowireCandidateResolver通过以下方式确定自动装配候选者：
+                The autowire-candidate value of each bean definition
+                Any default-autowire-candidates patterns available on the <beans/> element
+                The presence of @Qualifier annotations and any custom annotations registered with the CustomAutowireConfigurer
+        
+        G.使用@Resource注入  Injection with @Resource
+            JSR-250 @Resource： fields or bean property setter methods，
+            通过类型注入，找不到，再通过name注入，如果没有指定name，默认name源自字段名称或setter方法。
+            public class SimpleMovieLister {
+                private MovieFinder movieFinder;
+                @Resource(name="myMovieFinder") 
+                public void setMovieFinder(MovieFinder movieFinder) {
+                    this.movieFinder = movieFinder;
+                }
+            }
+            
+        
+        H.使用@Value
+            @Value通常用于注入外部化属性 inject externalized properties
+            例子：@Configuration
+                @PropertySource("classpath:application.properties")
+                public class AppConfig {
+                }
+
+                @Component
+                public class MovieRecommender {
+                    private final String catalog;
+                    public MovieRecommender(@Value("${catalog.name}") String catalog) {
+                        this.catalog = catalog;
+                    }
+                }
+                A default lenient embedded value resolver is provided by Spring.
+                如果属性值不能解析，即解析不成功，将注入属性名称。如果想严格一些，就需要使用PropertySourcesPlaceholderConfigurer：
+                如果任何 ${} 占位符无法解析，使用下面配置可确保 Spring 初始化失败。
+                    @Configuration
+                    public class AppConfig {
+                        使用JavaConfig配置PropertySourcesPlaceholderConfigurer时，@Bean方法必须是静态的。
+                        @Bean
+                        public static PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer() {
+                            return new PropertySourcesPlaceholderConfigurer();
+                        }
+                    }
+                    还可以使用setPlaceholderPrefix、setPlaceholderSuffix或setValueSeparator等方法来自定义占位符。
+                    Spring Boot默认配置一个PropertySourcesPlaceholderConfigurer bean，它将从application.properties和application.yml文件获取属性。
+            Spring提供的内置转换器支持自动处理简单的类型转换。
+                Spring BeanPostProcessor在背后使用ConversionService来处理将@Value中的String值转换为目标类型的过程。
+                也可以自定义类型转换器： @Configuration
+                                    public class AppConfig {
+                                        @Bean
+                                        public ConversionService conversionService() {
+                                            DefaultFormattingConversionService conversionService = new DefaultFormattingConversionService();
+                                            conversionService.addConverter(new MyCustomConverter());
+                                            return conversionService;
+                                        }
+                                    }
+                当 @Value包含SpEL表达式时，该值将在运行时动态计算： @Component
+                                                            public class MovieRecommender {
+                                                                private final String catalog;
+                                                                public MovieRecommender(@Value("#{systemProperties['user.catalog'] + 'Catalog' }") String catalog) {
+                                                                    this.catalog = catalog;
+                                                                }
+                                                            }
+                                                            SpEL还允许使用更复杂的数据类型：
+                                                            @Component
+                                                            public class MovieRecommender {
+                                                                private final Map<String, Integer> countOfMoviesPerCatalog;
+                                                                public MovieRecommender(
+                                                                        @Value("#{{'Thriller': 100, 'Comedy': 300}}") Map<String, Integer> countOfMoviesPerCatalog) {
+                                                                    this.countOfMoviesPerCatalog = countOfMoviesPerCatalog;
+                                                                }
+                                                            }
+                    
+        I.使用@PostConstruct and @PreDestroy
+            CommonAnnotationBeanPostProcessor不仅能识别@Resource，还能识别JSR-250的生命周期注解javax.annotation.PostConstruct和javax.annotation.PreDestroy    
+            public class CachingMovieLister {
+                @PostConstruct
+                public void populateMovieCache() {
+                    // populates the movie cache upon initialization...
+                }
+                @PreDestroy
+                public void clearMovieCache() {
+                    // clears the movie cache upon destruction...
+                }
+            } -->
+
+
+    <!-- 路径扫描 和 管理组件 Classpath Scanning and Managed Components
+        从Spring3.0开始，Spring JavaConfig项目提供的许多功能都是核心Spring框架的一部分。
+        
+        A.@Component和更多stereotype注解     @Component and Further Stereotype Annotations
+        B.使用元注解和组合注解    Using Meta-annotations and Composed Annotations
+        C.自动检测类并注册Bean定义    Automatically Detecting Classes and Registering Bean Definitions
+        D.使用过滤器自定义扫描    Using Filters to Customize Scanning
+        E.在组件内定义Bean元数据     Defining Bean Metadata within Components
+        F.命名自动检测的组件     Naming Autodetected Components
+        G.为自动检测的组件提供范围      Providing a Scope for Autodetected Components
+        H.提供带有注释的限定符元数据     Providing Qualifier Metadata with Annotations
+        I.生成候选组件的索引     Generating an Index of Candidate Components
+        
+        A.@Component和更多stereotype注解     @Component and Further Stereotype Annotations
+            @Component, @Repository, @Service, and @Controller
+                        persistence, service,  and presentation layers,
+            
+        B.使用元注解和组合注解    Using Meta-annotations and Composed Annotations
+            Spring提供的许多注解都可以用于元注解上
+            @Target(ElementType.TYPE)
+            @Retention(RetentionPolicy.RUNTIME)
+            @Documented
+            @Component 
+            public @interface Service {
+                // ...
+            }
+            也可以组合元注解： @RestController = @Controller + @ResponseBody
+                组合注解属性可以重新声明：
+                    @Target({ElementType.TYPE, ElementType.METHOD})
+                    @Retention(RetentionPolicy.RUNTIME)
+                    @Documented
+                    @Scope(WebApplicationContext.SCOPE_SESSION)
+                    public @interface SessionScope {
+                        /**
+                         * Alias for {@link Scope#proxyMode}.
+                         * <p>Defaults to {@link ScopedProxyMode#TARGET_CLASS}.
+                         */
+                        @AliasFor(annotation = Scope.class)
+                        ScopedProxyMode proxyMode() default ScopedProxyMode.TARGET_CLASS;
+                    }
+                    @Service
+                    @SessionScope   直接使用
+                    public class SessionScopedService {
+                        // ...
+                    }
+                    @Service
+                    @SessionScope(proxyMode = ScopedProxyMode.INTERFACES)   也可以再次声明 proxyMode
+                    public class SessionScopedUserService implements UserService {
+                        // ...
+                    }
+                            
+        C.自动检测类并注册Bean定义    Automatically Detecting Classes and Registering Bean Definitions
+            为了检测到类并注册响应的bean，需要在@Configuration标注的类上添加@ComponentScan
+            @Configuration
+            @ComponentScan(basePackages = "org.example") 简化：@ComponentScan("org.example") 逗号、分号、空格添加多个包
+            public class AppConfig  {
+                // ...
+            }
+            或者，使用XML替代：<context:component-scan base-package="org.example"/>
+                 	The use of <context:component-scan> implicitly enables the functionality of <context:annotation-config>. 
+                 	会隐式启用<context:annotation-config>  
+            类路径扫描要注意被扫描的路径能被允许被扫描到。
+            使用类路径扫描，AutowiredAnnotationBeanPostProcessor和CommonAnnotationBeanPostProcessor也会隐式的生效,
+            可以通过包含值为false的annotation-config属性来禁用AutowiredAnnotationBeanPostProcessor和CommonAnnotationBeanPostProcessor的注册。  
+            
+        D.使用过滤器自定义扫描    Using Filters to Customize Scanning
+            将它们添加为@ComponentScan注释的includeFilters或exceptFilters属
+            或者作为 XML 配置中 <context:component-scan> 元素的 <context:include-filter /> 或 <context:exclude-filter /> 子元素。
+            自定义过滤器都有type和expression属性，其中type属性有五种：annotation (default)、assignable、aspectj、regex、custom
+            例子：   @Configuration
+                    @ComponentScan(basePackages = "org.example",
+                            includeFilters = @Filter(type = FilterType.REGEX, pattern = ".*Stub.*Repository"),
+                            excludeFilters = @Filter(Repository.class))
+                    public class AppConfig {
+                        // ...
+                    }
+            相当于：<beans>
+                    <context:component-scan base-package="org.example">
+                        <context:include-filter type="regex"
+                                expression=".*Stub.*Repository"/>
+                        <context:exclude-filter type="annotation"
+                                expression="org.springframework.stereotype.Repository"/>
+                    </context:component-scan>
+                  </beans>
+            还可以通过在注释上设置 useDefaultFilters=false 或提供 use-default-filters="false" 作为 <component-scan/> 元素的属性来禁用默认过滤器,
+            这有效地禁用了对使用 @Component、@Repository、@Service、@Controller、@RestController 或 @Configuration 注解或元注解的类的自动检测。
+            
+        E.在组件内定义Bean元数据     Defining Bean Metadata within Components
+            Spring 组件还可以向容器提供 bean 定义元数据。
+                @Component
+                public class FactoryMethodComponent {
+                    @Bean
+                    @Qualifier("public")
+                    public TestBean publicInstance() {
+                        return new TestBean("publicInstance");
+                    }
+                    public void doWork() {
+                        // Component method implementation omitted
+                    }
+                }
+            其他可以指定的方法级注释有 @Scope、@Lazy 和自定义限定符注释。除了初始化以外，还可以将@Lazy注释放置在标有@Autowired或@Inject的注入点上。
+            InjectionPoint：
+            @Component
+            public class FactoryMethodComponent {
+                @Bean @Scope("prototype")
+                public TestBean prototypeInstance(InjectionPoint injectionPoint) {
+                    return new TestBean("prototypeInstance for " + injectionPoint.getMember());
+                }
+            }
+            常规 Spring 组件中的 @Bean 方法的处理方式与 Spring @Configuration 类中的对应方法不同。不同之处在于 @Component 类没有使用 CGLIB 进行增强来拦截方法和字段的调用。
+            
+        F.命名自动检测的组件     Naming Autodetected Components
+            spring有默认的Bean命名策略。也可以自定义Bean命名策略：
+                实现BeanNameGenerator接口，并确保包含默认的无参数构造函数。
+                @Configuration
+                @ComponentScan(basePackages = "org.example", nameGenerator = MyNameGenerator.class)
+                public class AppConfig {
+                    // ...
+                }
+                或者，XML配置：
+                <beans>
+                    <context:component-scan base-package="org.example"
+                        name-generator="org.example.MyNameGenerator" />
+                </beans>
+            从Spring Framework 5.2.3开始，位于org.springframework.context.annotation包中的
+            FullyQualifiedAnnotationBeanNameGenerator可以生成完全类限定名称，以解决名字冲突问题。
+            
+        G.为自动检测的组件提供范围      Providing a Scope for Autodetected Components
+            默认是单例的，也可以更改：
+                @Scope("prototype")
+                @Repository
+                public class MovieFinderImpl implements MovieFinder {
+                    // ...
+                }
+            自定义作用域解析：实现ScopeMetadataResolver接口。请务必包含默认的无参数构造函数。
+                @Configuration
+                @ComponentScan(basePackages = "org.example", scopeResolver = MyScopeResolver.class)
+                public class AppConfig {
+                    // ...
+                }
+                或者，XML形式：
+                <beans>
+                    <context:component-scan base-package="org.example" scope-resolver="org.example.MyScopeResolver"/>
+                </beans>
+            当使用某些非单例作用域时，可能需要为作用域对象生成代理： scopedProxy有三个值：no, interfaces, and targetClass
+                @Configuration
+                @ComponentScan(basePackages = "org.example", scopedProxy = ScopedProxyMode.INTERFACES)
+                public class AppConfig {
+                    // ...
+                }
+                <beans>
+                    <context:component-scan base-package="org.example" scoped-proxy="interfaces"/>
+                </beans>
+            
+        H.提供带有注释的限定符元数据     Providing Qualifier Metadata with Annotations
+            在以前，基于XML文件提供限定符元数据，通过<bean/>的子元素<qualifier/>和<meta/>
+            当依靠类路径扫描来自动检测组件时，可以为候选类提供带有类型级注释的限定符元数据:
+                @Component
+                @Qualifier("Action")
+                public class ActionMovieCatalog implements MovieCatalog {
+                    // ...
+                }
+                @Component
+                @Genre("Action")
+                public class ActionMovieCatalog implements MovieCatalog {
+                    // ...
+                }
+                @Component
+                @Offline
+                public class CachingMovieCatalog implements MovieCatalog {
+                    // ...
+                }
+            As with most annotation-based alternatives, keep in mind that the annotation metadata is bound to 
+            the class definition itself, while the use of XML allows for multiple beans of the same type to 
+            provide variations in their qualifier metadata, because that metadata is provided per-instance 
+            rather than per-class.
+            
+        I.生成候选组件的索引     Generating an Index of Candidate Components
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-context-indexer</artifactId>
+                    <version>5.3.30</version>
+                    <optional>true</optional>
+                </dependency>
+            </dependencies>
+            在 IDE 中使用此模式时，必须将 spring-context-indexer 注册为注释处理器，以确保更新候选组件时索引是最新的。-->
+
+
+    <!-- 使用 JSR 330 标准注释  Using JSR 330 Standard Annotations
+        从Spring 3.0开始，Spring提供对JSR-330标准注解（依赖注入）的支持。这些注解的扫描方式与spring注解的扫描方式一样。
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+            <version>1</version>
+        </dependency>
+        A.使用 @Inject和@Named进行依赖注入       Dependency Injection with @Inject and @Named
+        B.@Named和@ManagedBean:等价于@Component      @Named and @ManagedBean: Standard Equivalents to the @Component Annotation
+        C.JSR-330 标准注释的限制       Limitations of JSR-330 Standard Annotations
+        
+        A.使用 @Inject和@Named进行依赖注入       Dependency Injection with @Inject and @Named
+            与@Autowired一样，可以使用@javax.inject.Inject进行依赖注入，作用于field level, method level and constructor-argument level
+            此外，您可以将您的注入点声明为Provider：
+                import javax.inject.Inject;
+                import javax.inject.Provider;
+                public class SimpleMovieLister {
+                    private Provider<MovieFinder> movieFinder;
+                
+                    @Inject
+                    public void setMovieFinder(Provider<MovieFinder> movieFinder) {
+                        this.movieFinder = movieFinder;
+                    }
+                
+                    public void listMovies() {
+                        this.movieFinder.get().findMovies(...);
+                        // ...
+                    }
+                }
+            可以使用限定名：@Named
+                @Inject
+                public void setMovieFinder(@Named("main") MovieFinder movieFinder) {
+                    this.movieFinder = movieFinder;
+                }
+            与@Autowired一样，@Inject也可以与java.util.Optional 或 @Nullable 一起使用。@Inject没有required属性：
+                public class SimpleMovieLister {
+                    @Inject
+                    public void setMovieFinder(Optional<MovieFinder> movieFinder) {
+                        // ...
+                    }
+                }
+                
+                public class SimpleMovieLister {
+                    @Inject
+                    public void setMovieFinder(@Nullable MovieFinder movieFinder) {
+                        // ...
+                    }
+                }
+            
+        B.@Named和@ManagedBean:等价于@Component      @Named and @ManagedBean: Standard Equivalents to the @Component Annotation
+            可以使用@javax.inject.Named或javax.annotation.ManagedBean代替@Component
+                import javax.inject.Inject;
+                import javax.inject.Named;
+                
+                @Named("movieListener")  // 用@ManagedBean("movieListener")也可以   @Named也可以不指定名字
+                public class SimpleMovieLister {
+                    private MovieFinder movieFinder;
+                
+                    @Inject
+                    public void setMovieFinder(MovieFinder movieFinder) {
+                        this.movieFinder = movieFinder;
+                    }
+                    // ...
+                }
+            当使用@Named或@ManagedBean时，可以按照与使用 Spring 注解完全相同的方式使用组件扫描，如以下示例所示：
+                @Configuration
+                @ComponentScan(basePackages = "org.example")
+                public class AppConfig  {
+                    // ...
+                }
+            JSR-330 @Named 和 JSR-250 @ManagedBean 注解不可组合使用。应该使用Spring的stereotype model来构建自定义组件注解。
+            
+        C.JSR-330 标准注释的限制       Limitations of JSR-330 Standard Annotations -->
+
+
+    <!-- 基于Java的容器配置 Java-based Container Configuration 
+        如何在 Java 代码中使用注释来配置 Spring 容器？
+        A.@Bean and @Configuration的基本概念    Basic Concepts: @Bean and @Configuration
+        B.使用AnnotationConfigApplicationContext实例化Spring容器   Instantiating the Spring Container by Using AnnotationConfigApplicationContext
+        C.使用@Bean注解     Using the @Bean Annotation
+        D.使用@Configuration注解      Using the @Configuration annotation
+        E.组合基于Java的配置       Composing Java-based Configurations
+        
+        A.@Bean and @Configuration的基本概念    Basic Concepts: @Bean and @Configuration
+            Spring新的Java配置支持中的核心构件是 @Configuration注解的类 和 @Bean注解的方法。
+            The central artifacts in Spring’s new Java-configuration support are @Configuration-annotated classes and @Bean-annotated methods.
+            @Bean用于指示一个方法去 实例化、配置和初始化(instantiates, configures, and initializes) 一个由Spring IoC容器管理的新对象
+            @Bean与XML中的<bean/>起着相同的作用，可以将@Bean注解的方法与任何Spring @Component一起使用。然而，它们最常与@Configuration bean一起使用。
+            使用@Configuration注解一个类表明它的主要目的是作为bean定义的来源。此外，@Configuration 类允许通过调用同一类中的其他 @Bean 方法来定义 bean 之间的依赖关系。
+            例如：
+                @Configuration
+                public class AppConfig {
+                    @Bean
+                    public MyServiceImpl myService() {
+                        return new MyServiceImpl();
+                    }
+                }
+            相当于：
+                <beans>
+                    <bean id="myService" class="com.acme.services.MyServiceImpl"/>
+                </beans>
+            当@Bean注解不在@Configuration类中使用的时候，称为as being processed in a “lite” mode.例如在@Component类甚至普通旧类中声明的Bean
+            “lite” mode的@Bean方法无法声明bean间的依赖关系。相反，他们操作组件的内部状态，或者，操作他们可能声明的参数。这里的积极副作用是，在运行时不必
+            应用CGLIB子类化，因此在类设计方面没有限制（即，包含的类可以是final类，等等）。
+            当@Bean注解在@Configuration类中使用的时候，称为“full” mode。
+
+        B.使用AnnotationConfigApplicationContext实例化Spring容器   Instantiating the Spring Container by Using AnnotationConfigApplicationContext
+            Spring 3.0引入Spring AnnotationConfigApplicationContext。
+            这种多功能的ApplicationContext实现不仅能够接受@Configuration类作为输入，还能够接受普通的@Component类和用JSR-330元数据注释的类。
+            B.1.Simple Construction
+                ApplicationContext ctx = new AnnotationConfigApplicationContext(AppConfig.class);
+                任何 @Component 或 JSR-330 注解的类都可以作为构造函数的输入提供:
+                ApplicationContext ctx = new AnnotationConfigApplicationContext(MyServiceImpl.class, Dependency1.class, Dependency2.class);
+                
+            B.2使用register(Class<?>...)以编程方式构建容器       Building the Container Programmatically by Using register(Class<?>...)
+                public static void main(String[] args) {
+                    AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+                    ctx.register(AppConfig.class, OtherConfig.class);
+                    ctx.register(AdditionalConfig.class);
+                    ctx.refresh();
+                }
+                
+            B.3使用scan(String...)启用组件扫描      Enabling Component Scanning with scan(String...)
+                要启用组件扫描，可以按如下方式注解：
+                    @Configuration
+                    @ComponentScan(basePackages = "com.acme") 
+                    public class AppConfig  {
+                        // ...
+                    }
+                等效于：<context:component-scan base-package="com.acme"/>
+                上面的扫描将扫描到所有@Component-annotated classes的类，并且这些类在容器内注册为Spring bean definitions。
+                还可以使用scan()方法启用组件扫描
+                AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+                ctx.scan("com.acme");
+                ctx.refresh();
+                
+            B.4使用 AnnotationConfigWebApplicationContext 支持 Web 应用程序     Support for Web Applications with AnnotationConfigWebApplicationContext
+                AnnotationConfigApplicationContext 的 WebApplicationContext变体 是 AnnotationConfigWebApplicationContext。
+                GenericWebApplicationContext可以作为AnnotationConfigWebApplicationContext的替代。
+                可以在配置Spring ContextLoaderListener servlet listener监听器、Spring MVC DispatcherServlet 等时使用此实现。
+                以下web.xml片段配置了典型的Spring MVC Web应用程序： note the use of the contextClass context-param and init-param
+                        <web-app>
+                            Configure ContextLoaderListener to use AnnotationConfigWebApplicationContext 
+                            instead of the default XmlWebApplicationContext
+                            <context-param>
+                                <param-name>contextClass</param-name>
+                                <param-value>
+                                    org.springframework.web.context.support.AnnotationConfigWebApplicationContext
+                                </param-value>
+                            </context-param>
+                        
+                            Configuration locations must consist of one or more comma- or space-delimited
+                            fully-qualified @Configuration classes. Fully-qualified packages may also be
+                            specified for component-scanning
+                            <context-param>
+                                <param-name>contextConfigLocation</param-name>
+                                <param-value>com.acme.AppConfig</param-value>
+                            </context-param>
+                        
+                            Bootstrap the root application context as usual using ContextLoaderListener
+                            <listener>
+                                <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+                            </listener>
+                        
+                            Declare a Spring MVC DispatcherServlet as usual
+                            <servlet>
+                                <servlet-name>dispatcher</servlet-name>
+                                <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+                                Configure DispatcherServlet to use AnnotationConfigWebApplicationContext
+                                instead of the default XmlWebApplicationContext
+                                <init-param>
+                                    <param-name>contextClass</param-name>
+                                    <param-value>
+                                        org.springframework.web.context.support.AnnotationConfigWebApplicationContext
+                                    </param-value>
+                                </init-param>
+                                Again, config locations must consist of one or more comma- or space-delimited
+                                and fully-qualified @Configuration classes
+                                <init-param>
+                                    <param-name>contextConfigLocation</param-name>
+                                    <param-value>com.acme.web.MvcConfig</param-value>
+                                </init-param>
+                            </servlet>
+                        
+                            map all requests for /app/* to the dispatcher servlet
+                            <servlet-mapping>
+                                <servlet-name>dispatcher</servlet-name>
+                                <url-pattern>/app/*</url-pattern>
+                            </servlet-mapping>
+                        </web-app>
+        
+        C.使用@Bean注解     Using the @Bean Annotation
+            @Bean是方法级别的注解，是XML <bean/>元素的直接模拟。该注解支持<bean/>元素提供的一些属性：init-method
+                                                                                       destroy-method
+                                                                                       autowiring
+                                                                                       name
+            可以在 @Configuration注解或@Component注解的类 中使用@Bean注解。
+            
+            C.1声明一个Bean     Declaring a Bean
+            C.2Bean依赖       Bean Dependencies
+            C.3接收生命周期回调     Receiving Lifecycle Callbacks
+            C.4指定Bean范围     Specifying Bean Scope
+            C.5自定义Bean名称    Customizing Bean Naming
+            C.6Bean别名   Bean Aliasing
+            C.7Bean描述   Bean Description
+            
+            C.1声明一个Bean     Declaring a Bean
+                要声明bean，可以使用@Bean注解来注解方法。可以使用此方法在ApplicationContext中注册bean definition，其类型指定为方法的返回值。
+                    默认情况下，bean名称与方法名称相同：  @Configuration
+                                                    public class AppConfig {
+                                                    
+                                                        @Bean
+                                                        public TransferServiceImpl transferService() {
+                                                            return new TransferServiceImpl();
+                                                        }
+                                                    }
+                                           等效于：  <beans>
+                                                      <bean id="transferService" class="com.acme.TransferServiceImpl"/>
+                                                   </beans>
+                    这两种声明都是使名称为transferService的bean在ApplicationContext中可用，并将TransferServiceImpl类型的实例绑定到transferService上：
+                    transferService -> com.acme.TransferServiceImpl
+                还可以使用默认方法定义beans:   public interface BaseConfig {
+                                                @Bean
+                                                default TransferServiceImpl transferService() {
+                                                    return new TransferServiceImpl();
+                                                }
+                                            }
+                                            @Configuration
+                                            public class AppConfig implements BaseConfig {
+                                            
+                                            }
+                还可以使用接口返回类型来声明@Bean方法：@Configuration
+                                                public class AppConfig {
+                                                    @Bean
+                                                    public TransferService transferService() {
+                                                        return new TransferServiceImpl();
+                                                    }
+                                                }
+                    但是，这限制了高级类型(advance type)预测对指定接口类型(TransferService)的可见性。然后，只有在实例化受影响的单例 bean 后，容器才知道完整类型 (TransferServiceImpl)。
+                    If you consistently refer to your types by a declared service interface, your @Bean return types may safely join that design decision. 
+                    However, for components that implement several interfaces or for components potentially referred to by their implementation type, 
+                    it is safer to declare the most specific return type possible (at least as specific as required by the injection points that refer to your bean).
+                
+            C.2Bean依赖       Bean Dependencies
+                @Bean注解的方法可以具有任意数量的参数，这些参数描述构建该bean所需的依赖项。
+                例如：TransferService需要依赖AccountRepository
+                    @Configuration
+                    public class AppConfig {
+                        @Bean
+                        public TransferService transferService(AccountRepository accountRepository) {
+                            return new TransferServiceImpl(accountRepository);
+                        }
+                    }
+                
+            C.3接收生命周期回调     Receiving Lifecycle Callbacks
+                使用@Bean注解定义的任何类都支持生命周期回调，并且可以使用JSR-250中的@PostConstruct和@PreDestroy注解。
+                Spring的生命周期回调也完全支持，如果一个bean实现了InitializingBean, DisposableBean, or Lifecycle, 他们各自的方法都会被容器回调。
+                标准的 *Aware 接口集（例如 BeanFactoryAware、BeanNameAware、MessageSourceAware、ApplicationContextAware 等）也得到完全支持。
+                @Bean注解支持指定任意初始化和销毁回调方法，与Spring XML的bean元素上的init-method和destroy-method属性非常相似：
+                    public class BeanOne {
+                        public void init() {
+                            // initialization logic
+                        }
+                    }
+                    public class BeanTwo {
+                        public void cleanup() {
+                            // destruction logic
+                        }
+                    }
+                    @Configuration
+                    public class AppConfig {
+                        @Bean(initMethod = "init")
+                        public BeanOne beanOne() {
+                            return new BeanOne();
+                        }
+                    
+                        @Bean(destroyMethod = "cleanup")
+                        public BeanTwo beanTwo() {
+                            return new BeanTwo();
+                        }
+                    }
+                    对于beanOne来说，上面的配置等价于：
+                    @Bean
+                    public BeanOne beanOne() {
+                        BeanOne beanOne = new BeanOne();
+                        beanOne.init();
+                        return beanOne;
+                    }
+                默认情况下，使用具有公共close或shutdown方法的Java配置定义的bean会自动使用调回销毁回调。如果有公共的close或shutdown方法，
+                并且不希望在容器销毁时被调用，可以使用@Bean(destroyMethod="")，来禁用默认(inferred)模式。
+                
+            C.4指定Bean范围     Specifying Bean Scope
+                spring提供@Scope注解，来指定bean范围：@Configuration
+                                                 public class MyConfiguration {
+                                                 
+                                                     @Bean
+                                                     @Scope("prototype")
+                                                     public Encryptor encryptor() {
+                                                         // ...
+                                                     }
+                                                 }
+                Spring提供了一种通过作用域代理处理作用域依赖项的便捷方法。使用 XML 配置时创建此类代理的最简单方法是使用<aop:scoped-proxy/>元素。
+                使用@Scope注解在Java中配置Bean提供了与proxyMode 属性相同的支持。默认是ScopedProxyMode.DEFAULT，
+                The default is ScopedProxyMode.DEFAULT, which typically indicates that no scoped proxy should be created 
+                unless a different default has been configured at the component-scan instruction level.
+                还可以指定为ScopedProxyMode.TARGET_CLASS, ScopedProxyMode.INTERFACES or ScopedProxyMode.NO
+                如果使用Java配置将作用域代理示例从XML移植到@Bean：
+                    // an HTTP Session-scoped bean exposed as a proxy
+                    @Bean
+                    @SessionScope
+                    public UserPreferences userPreferences() {
+                        return new UserPreferences();
+                    }
+                    
+                    @Bean
+                    public Service userService() {
+                        UserService service = new SimpleUserService();
+                        // a reference to the proxied userPreferences bean
+                        service.setUserPreferences(userPreferences());
+                        return service;
+                    }
+                                    
+            C.5自定义Bean名称    Customizing Bean Naming
+                默认使用方法名字作为bean的名字，可以使用@Bean的name属性进行覆盖：
+                    @Configuration
+                    public class AppConfig {
+                        @Bean("myThing")
+                        public Thing thing() {
+                            return new Thing();
+                        }
+                    }
+                    
+            C.6Bean别名   Bean Aliasing
+                为一个bean设置多个name，@Bean注解的name属性接受一个String数组。：
+                    @Configuration
+                    public class AppConfig {
+                        @Bean({"dataSource", "subsystemA-dataSource", "subsystemB-dataSource"})
+                        public DataSource dataSource() {
+                            // instantiate, configure and return DataSource bean...
+                        }
+                    }
+
+            C.7Bean描述   Bean Description
+                Sometimes, it is helpful to provide a more detailed textual description of a bean. 
+                This can be particularly useful when beans are exposed (perhaps through JMX) for monitoring purposes.
+                    @Configuration
+                    public class AppConfig {
+                    
+                        @Bean
+                        @Description("Provides a basic example of a bean")
+                        public Thing thing() {
+                            return new Thing();
+                        }
+                    }
+
+        D.使用@Configuration注解      Using the @Configuration annotation
+            @Configuration是一个类级别的注解，表明该对象是bean定义(bean definitions)的源source。
+            @Configuration类通过由@Bean注解的方法来声明bean。对@Configuration类上的@Bean方法的调用也可用于定义bean间的依赖关系。
+            
+            D.1注入bean之间的依赖关系    Injecting Inter-bean Dependencies
+                bean之间有依赖关系时，就像调用方法一样简单，来表达它们之间的依赖关系。
+                @Configuration
+                public class AppConfig {
+                    @Bean
+                    public BeanOne beanOne() {
+                        return new BeanOne(beanTwo());
+                    }
+                    @Bean
+                    public BeanTwo beanTwo() {
+                        return new BeanTwo();
+                    }
+                }
+                这种方式只有@Bean在@Configuration注解的类中才有效，在@Component类中的@Bean无效。
+
+            D.2查找方法注入       Lookup Method Injection
+                查找方法注入是一项应该很少使用的高级功能。当单例bean依赖于原型bean时，它非常有用。
+                public abstract class CommandManager {
+                    public Object process(Object commandState) {
+                        // grab a new instance of the appropriate Command interface
+                        Command command = createCommand();
+                        // set the state on the (hopefully brand new) Command instance
+                        command.setState(commandState);
+                        return command.execute();
+                    }
+                    // okay... but where is the implementation of this method?
+                    protected abstract Command createCommand();
+                }
+                配置类：  @Bean
+                        @Scope("prototype")
+                        public AsyncCommand asyncCommand() {
+                            AsyncCommand command = new AsyncCommand();
+                            // inject dependencies here as required
+                            return command;
+                        }
+                        @Bean
+                        public CommandManager commandManager() {
+                            // return new anonymous implementation of CommandManager with createCommand()
+                            // overridden to return a new prototype Command object
+                            return new CommandManager() {
+                                protected Command createCommand() {
+                                    return asyncCommand();
+                                }
+                            }
+                        }
+                    
+            D.3有关基于Java的配置如何在内部工作的更多信息    Further Information About How Java-based Configuration Works Internally
+                @Configuration
+                public class AppConfig {
+                    @Bean
+                    public ClientService clientService1() {
+                        ClientServiceImpl clientService = new ClientServiceImpl();
+                        clientService.setClientDao(clientDao());
+                        return clientService;
+                    }
+                    @Bean
+                    public ClientService clientService2() {
+                        ClientServiceImpl clientService = new ClientServiceImpl();
+                        clientService.setClientDao(clientDao());
+                        return clientService;
+                    }
+                    @Bean   //该方法被调用了两次
+                    public ClientDao clientDao() {
+                        return new ClientDaoImpl();
+                    }
+                }
+                所有@Configuration类在启动时都使用CGLIB进行子类化。All @Configuration classes are subclassed at startup-time with CGLIB
+                在子类中，子方法在调用父方法并创建新实例之前，首先检查容器中是否有任何缓存（作用域）bean。
+                从Spring 3.2开始，不再需要将CGLIB添加到类路径中，因为CGLIB类已在org.springframework.cglib下重新打包并直接包含在spring-core JAR 中。
+                    There are a few restrictions due to the fact that CGLIB dynamically adds features at startup-time. 
+                    In particular, configuration classes must not be final. However, as of 4.3, any constructors are allowed 
+                    on configuration classes, including the use of @Autowired or a single non-default constructor declaration 
+                    for default injection.
+                    If you prefer to avoid any CGLIB-imposed limitations, consider declaring your @Bean methods on 
+                    non-@Configuration classes (for example, on plain @Component classes instead). Cross-method calls between 
+                    @Bean methods are not then intercepted, so you have to exclusively rely on dependency injection at the 
+                    constructor or method level there.
+                
+        E.组合基于Java的配置       Composing Java-based Configurations
+            Spring基于Java的配置功能允许组合注解，这可以降低配置的复杂性。
+            E.1使用@Import注解      Using the @Import Annotation
+            E.2有条件地包含@Configuration类或@Bean方法    Conditionally Include @Configuration Classes or @Bean Methods
+            E.3组合Java和XML配置     Combining Java and XML Configuration
+            
+            E.1使用@Import注解      Using the @Import Annotation
+                就像Spring XML文件中使用<import/>元素来帮助模块化配置一样， @Import注解允许从另一个配置类加载@Bean definitions
+                    @Configuration
+                    public class ConfigA {
+                        @Bean
+                        public A a() {
+                            return new A();
+                        }
+                    }
+                    @Configuration
+                    @Import(ConfigA.class)
+                    public class ConfigB {
+                        @Bean
+                        public B b() {
+                            return new B();
+                        }
+                    }
+                    ApplicationContext ctx = new AnnotationConfigApplicationContext(ConfigB.class);
+                从Spring Framework 4.2开始，@Import还支持对常规组件类的引用，类似于AnnotationConfigApplicationContext.register()方法。如果
+                想通过使用一些配置类作为入口点来显式定义所有组件来避免组件扫描，这尤其有用。
+                
+                注入Bena依赖：
+                @Configuration
+                public class ServiceConfig {
+                    @Bean
+                    public TransferService transferService(AccountRepository accountRepository) {
+                        return new TransferServiceImpl(accountRepository);
+                    }
+                }
+                @Configuration
+                public class RepositoryConfig {
+                    @Bean
+                    public AccountRepository accountRepository(DataSource dataSource) {
+                        return new JdbcAccountRepository(dataSource);
+                    }
+                }
+                @Configuration
+                @Import({ServiceConfig.class, RepositoryConfig.class})
+                public class SystemTestConfig {
+                    @Bean
+                    public DataSource dataSource() {
+                        // return new DataSource
+                    }
+                }
+                
+                public static void main(String[] args) {
+                    ApplicationContext ctx = new AnnotationConfigApplicationContext(SystemTestConfig.class);
+                    // everything wires up across configuration classes...
+                    TransferService transferService = ctx.getBean(TransferService.class);
+                    transferService.transfer(100.00, "A123", "C456");
+                }
+                记住：@Configuration标注的类最后只是容器的一个Bean，这意味着它们可以像任何其他bean一样利用@Autowired和@Value注入以及其他功能。
+                Make sure that the dependencies you inject that way are of the simplest kind only. @Configuration classes 
+                are processed quite early during the initialization of the context, and forcing a dependency to be injected 
+                this way may lead to unexpected early initialization. Whenever possible, resort to parameter-based injection, 
+                as in the preceding example.
+                Also, be particularly careful with BeanPostProcessor and BeanFactoryPostProcessor definitions through @Bean. 
+                Those should usually be declared as static @Bean methods, not triggering the instantiation of their containing 
+                configuration class. Otherwise, @Autowired and @Value may not work on the configuration class itself, since 
+                it is possible to create it as a bean instance earlier than AutowiredAnnotationBeanPostProcessor.
+                @Configuration
+                public class ServiceConfig {
+                    @Autowired
+                    private AccountRepository accountRepository;
+                    @Bean
+                    public TransferService transferService() {
+                        return new TransferServiceImpl(accountRepository);
+                    }
+                }
+                @Configuration
+                public class RepositoryConfig {
+                    private final DataSource dataSource;
+                    public RepositoryConfig(DataSource dataSource) {
+                        this.dataSource = dataSource;
+                    }
+                    @Bean
+                    public AccountRepository accountRepository() {
+                        return new JdbcAccountRepository(dataSource);
+                    }
+                }
+                @Configuration
+                @Import({ServiceConfig.class, RepositoryConfig.class})
+                public class SystemTestConfig {
+                    @Bean
+                    public DataSource dataSource() {
+                        // return new DataSource
+                    }
+                }
+                public static void main(String[] args) {
+                    ApplicationContext ctx = new AnnotationConfigApplicationContext(SystemTestConfig.class);
+                    // everything wires up across configuration classes...
+                    TransferService transferService = ctx.getBean(TransferService.class);
+                    transferService.transfer(100.00, "A123", "C456");
+                }
+                从Spring Framework 4.3开始支持@Configuration类中的构造函数注入，并且如果目标bean仅定义一个构造函数，则无需指定@Autowired。
+                
+                上面代码不够清晰，无法看到自动注入的bean definition在哪定义的，例如ServiceConfig里面的@Autowired AccountRepository，
+                如果这种歧义不可接受，并且希望在IDE中从一个@Configuration类直接导航到另一个@Configuration类，考虑自动装配配置类本身：
+                    @Configuration
+                    public class ServiceConfig {
+                        @Autowired  // 导入配置类本身，而不是
+                        private RepositoryConfig repositoryConfig;
+                        @Bean
+                        public TransferService transferService() {
+                            // navigate 'through' the config class to the @Bean method!
+                            return new TransferServiceImpl(repositoryConfig.accountRepository());
+                        }
+                    }
+                这种方式也有缺点，就是RepositoryConfig和ServiceConfig两个config耦合了。通过使用基于接口或基于抽象类的@Configuration类可以在一定程度上缓解这种紧密耦合：
+                    @Configuration
+                    public class ServiceConfig {
+                        @Autowired
+                        private RepositoryConfig repositoryConfig;
+                        @Bean
+                        public TransferService transferService() {
+                            return new TransferServiceImpl(repositoryConfig.accountRepository());
+                        }
+                    }
+                    @Configuration
+                    public interface RepositoryConfig {
+                        @Bean
+                        AccountRepository accountRepository();
+                    }
+                    
+                    @Configuration
+                    public class DefaultRepositoryConfig implements RepositoryConfig {
+                        @Bean
+                        public AccountRepository accountRepository() {
+                            return new JdbcAccountRepository(...);
+                        }
+                    }
+                    
+                    @Configuration
+                    @Import({ServiceConfig.class, DefaultRepositoryConfig.class})  // import the concrete config!
+                    public class SystemTestConfig {
+                        @Bean
+                        public DataSource dataSource() {
+                            // return DataSource
+                        }
+                    }
+                    
+                    public static void main(String[] args) {
+                        ApplicationContext ctx = new AnnotationConfigApplicationContext(SystemTestConfig.class);
+                        TransferService transferService = ctx.getBean(TransferService.class);
+                        transferService.transfer(100.00, "A123", "C456");
+                    }
+                
+            E.2有条件地包含@Configuration类或@Bean方法    Conditionally Include @Configuration Classes or @Bean Methods
+                基于某些任意的系统状态，有条件地启用或禁用完整的@Configuration类甚至单个@Bean方法通常很有用。一个常见的例子是仅当Spring环境中
+                启用了特定配置文件时才使用@Profile注解来激活bean。@Profile注解实际上是通过使用更灵活的注解@Conditiona来实现的。@Conditional
+                注解指示在注册@Bean之前应查阅特定的org.springframework.context.annotation.Condition实现。
+                Condition接口的实现类提供了matches方法： @Override
+                                                    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+                                                        // 读取@Profile注解属性       Read the @Profile annotation attributes
+                                                        MultiValueMap<String, Object> attrs = metadata.getAllAnnotationAttributes(Profile.class.getName());
+                                                        if (attrs != null) {
+                                                            for (Object value : attrs.get("value")) {
+                                                                if (context.getEnvironment().acceptsProfiles(((String[]) value))) {
+                                                                    return true;
+                                                                }
+                                                            }
+                                                            return false;
+                                                        }
+                                                        return true;
+                                                    }
+                                
+            E.3组合Java和XML配置     Combining Java and XML Configuration
+                Spring的@Configuration类支持并不旨在100%完全替代Spring XML。某些设施（例如 Spring XML 命名空间）仍然是配置容器的理想方式。
+                either instantiate the container in an “XML-centric” way by using, for example, ClassPathXmlApplicationContext, 
+                or instantiate it in a “Java-centric” way by using AnnotationConfigApplicationContext and the @ImportResource 
+                annotation to import XML as needed.
+                以XML为中心，使用Java配置类   XML-centric Use of @Configuration Classes：
+                    两种方法整合：
+                    Declaring @Configuration classes as plain Spring <bean/> elements
+                    Using <context:component-scan/> to pick up @Configuration classes
+                    
+                    Declaring @Configuration classes as plain Spring <bean/> elements：
+                        @Configuration
+                        public class AppConfig {
+                            @Autowired
+                            private DataSource dataSource;
+                            @Bean
+                            public AccountRepository accountRepository() {
+                                return new JdbcAccountRepository(dataSource);
+                            }
+                            @Bean
+                            public TransferService transferService() {
+                                return new TransferService(accountRepository());
+                            }
+                        }
+                        <beans>
+                            开启注解处理    enable processing of annotations such as @Autowired and @Configuration
+                            <context:annotation-config/>
+                            <context:property-placeholder location="classpath:/com/acme/jdbc.properties"/>
+                            将配置类声明为一个<bean/>
+                            <bean class="com.acme.AppConfig"/>
+                        
+                            <bean class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+                                <property name="url" value="${jdbc.url}"/>
+                                <property name="username" value="${jdbc.username}"/>
+                                <property name="password" value="${jdbc.password}"/>
+                            </bean>
+                        </beans>
+                        public static void main(String[] args) {
+                            ApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:/com/acme/system-test-config.xml");
+                            TransferService transferService = ctx.getBean(TransferService.class);
+                            // ...
+                        }
+                    Using <context:component-scan/> to pick up @Configuration classes：
+                        因为@Configuration是用@Component进行元注解的，@Configuration注解的类自动成为组件扫描的候选者。
+                        请注意，在这种情况下，我们不需要显式声明<context:annotation-config/>，因为<context:component-scan/>启用相同的功能。
+                        <beans>
+                            picks up and registers AppConfig as a bean definition
+                            <context:component-scan base-package="com.acme"/>
+                            <context:property-placeholder location="classpath:/com/acme/jdbc.properties"/>
+                        
+                            <bean class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+                                <property name="url" value="${jdbc.url}"/>
+                                <property name="username" value="${jdbc.username}"/>
+                                <property name="password" value="${jdbc.password}"/>
+                            </bean>
+                        </beans>
+                        
+                以Java配置为中心，使用XML    @Configuration Class-centric Use of XML with @ImportResource
+                    @Configuration
+                    @ImportResource("classpath:/com/acme/properties-config.xml")
+                    public class AppConfig {
+                    
+                        @Value("${jdbc.url}")
+                        private String url;
+                    
+                        @Value("${jdbc.username}")
+                        private String username;
+                    
+                        @Value("${jdbc.password}")
+                        private String password;
+                    
+                        @Bean
+                        public DataSource dataSource() {
+                            return new DriverManagerDataSource(url, username, password);
+                        }
+                    }
+                    properties-config.xml：
+                    <beans>
+                        <context:property-placeholder location="classpath:/com/acme/jdbc.properties"/>
+                    </beans>
+                    public static void main(String[] args) {
+                        ApplicationContext ctx = new AnnotationConfigApplicationContext(AppConfig.class);
+                        TransferService transferService = ctx.getBean(TransferService.class);
+                        // ...
+                    } -->
+
+
+    <!-- 环境抽象   Environment Abstraction
+        Environment接口是集成在容器中的一个抽象， 它对应用程序环境的两个关键方面进行建模：配置文件profiles和属性properties
+        A.Bean定义文件      Bean Definition Profiles
+        B.PropertySource抽象      PropertySource Abstraction
+        C.使用@PropertySource     Using @PropertySource
+        D.语句中的占位符解析     Placeholder Resolution in Statements
+        
+        A.Bean定义文件      Bean Definition Profiles
+            
+            
+        B.PropertySource抽象      PropertySource Abstraction
+        C.使用@PropertySource     Using @PropertySource
+        D.语句中的占位符解析     Placeholder Resolution in Statements
     -->
+
+
+    <!-- ************************************************************************************************************* -->
+    <!-- **************************************************2.Resource************************************************* -->
+    <!-- ************************************************************************************************************* -->
 </beans>

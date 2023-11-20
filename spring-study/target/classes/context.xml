@@ -4,12 +4,12 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans 
        http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-
-    <!--It can be useful to have bean definitions span multiple XML files.Often, each individual XML configuration file
-    represents a logical layer or module in your architecture.
-    让 bean 定义跨越多个 XML 文件会很有用。通常，每个单独的 XML 配置文件代表体系结构中的一个逻辑层或模块。-->
-
     <import resource="services.xml"/>
     <import resource="daos.xml"/>
+    
+    <!-- 注册BeanPostProcessor，可以不给id和name -->
+    <bean class="com.wang.containerextensionpoints.beanpp.MyBeanPostProcessorBean"></bean>
+    <bean class="com.wang.containerextensionpoints.beanfactorypp.MyBeanFactoryPostProcessorBean"></bean>
+    <bean id="myFactoryBean" class="com.wang.containerextensionpoints.factorybean.MyFactoryBean"></bean>
 
 </beans>
